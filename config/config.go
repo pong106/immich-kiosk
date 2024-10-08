@@ -143,6 +143,8 @@ type Config struct {
 	ShowExif bool `mapstructure:"show_exif"`
 	// ShowPalette whether to display palette
 	ShowPalette bool `mapstructure:"show_palette"`
+	// ShowMake whether to display make
+	ShowMake bool `mapstructure:"show_make"`
 }
 
 // New returns a new config pointer instance

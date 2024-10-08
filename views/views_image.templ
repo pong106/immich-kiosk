@@ -154,6 +154,13 @@ templ layoutSingleView(viewData ViewData) {
 						@templ.Raw(ImageExif(viewData.Images[0].ImmichImage.ExifInfo))
 					</div>
 				}
+
+                if viewData.ShowMake{
+                    <div class="image--metadata--exif">
+                        { viewData.Images[0].ImmichImage.ExifInfo.Make } { viewData.Images[0].ImmichImage.ExifInfo.Model }
+                    </div>
+                }
+
 				if viewData.ShowImageLocation {
 					<div class="image--metadata--location">
 						@templ.Raw(ImageLocation(viewData.Images[0].ImmichImage.ExifInfo))
@@ -199,6 +206,11 @@ templ layoutSplitView(viewData ViewData) {
 								@templ.Raw(ImageExif(imageData.ImmichImage.ExifInfo))
 							</div>
 						}
+						if viewData.ShowMake{
+                                            <div class="image--metadata--exif">
+                                                { viewData.Images[0].ImmichImage.ExifInfo.Make } { viewData.Images[0].ImmichImage.ExifInfo.Model }
+                                            </div>
+                                        }
 						if viewData.ShowImageLocation {
 							<div class="image--metadata--location">
 								@templ.Raw(ImageLocation(imageData.ImmichImage.ExifInfo))
