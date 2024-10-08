@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"bytes"
 	"fmt"
+	"image"
 	"net/http"
 	"strings"
 	"time"
@@ -13,6 +15,9 @@ import (
 	"github.com/damongolding/immich-kiosk/views"
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
+
+	color_extractor "github.com/marekm4/color-extractor"
+	"image/color"
 )
 
 // gatherPeopleAndAlbums collects asset weightings for people and albums.
@@ -215,6 +220,18 @@ func processViewImageData(imageOrientation immich.ImageOrientation, requestConfi
 		return views.ImageData{}, err
 	}
 
+	var colors []color.Color
+	if requestConfig.ShowPalette {
+		colorsExtractTime := time.Now()
+		imageObj, _, _ := image.Decode(bytes.NewReader(imgBytes))
+		colors = color_extractor.ExtractColors(imageObj)
+		log.Debug(requestID,
+			"Colors extracted in", time.Since(colorsExtractTime).Seconds(),
+			"Length", len(colors),
+			"Got colors from image", colors,
+		)
+	}
+
 	imgBlur, err := processBlurredImage(imgBytes, requestConfig, requestID, kioskDeviceID, isPrefetch)
 	if err != nil {
 		return views.ImageData{}, err
@@ -224,6 +241,7 @@ func processViewImageData(imageOrientation immich.ImageOrientation, requestConfi
 		ImmichImage:   immichImage,
 		ImageData:     img,
 		ImageBlurData: imgBlur,
+		Colors:        colors,
 	}, nil
 }
 
@@ -363,6 +381,7 @@ func generateViewData(requestConfig config.Config, c echo.Context, kioskDeviceID
 			return viewData, err
 		}
 		viewData.Images = append(viewData.Images, viewDataSplitView)
+		viewData.Colors = viewDataSplitView.Colors
 
 	default:
 		viewDataSingle, err := ProcessViewImageData(requestConfig, c, isPrefetch)
@@ -370,6 +389,7 @@ func generateViewData(requestConfig config.Config, c echo.Context, kioskDeviceID
 			return viewData, err
 		}
 		viewData.Images = append(viewData.Images, viewDataSingle)
+		viewData.Colors = viewDataSingle.Colors
 	}
 
 	return viewData, nil

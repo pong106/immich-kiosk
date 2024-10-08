@@ -21,6 +21,8 @@ body{}
 .frame--layout-splitview:nth-child(1){}
 .frame--layout-splitview:nth-child(2){}
 .frame--layout-splitview .frame--image{}
+.frame--colors{}
+.frame--color{}
 /* src/css/image.css */
 .image--metadata{}
 .image--metadata--theme-fade::before{}

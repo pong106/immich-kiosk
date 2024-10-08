@@ -7,7 +7,18 @@ import (
 	"github.com/damongolding/immich-kiosk/utils"
 	"strings"
 	"time"
+    "image/color"
 )
+
+templ Color(colors []color.Color) {
+    <div class="frame--colors">
+        for _, color :=  range colors {
+            {{ r, g, b, _ := color.RGBA() }}
+        	{{ colorStyle := fmt.Sprintf("background-color: rgba(%v,%d,%d,1)", r>>8, g>>8, b>>8) }}
+            @templ.Raw(fmt.Sprintf(`<div class="frame--color" style="%s"></div>`,colorStyle))
+        }
+    </div>
+}
 
 templ ImageFitCover(ImageData, imageFit string) {
 	<img
@@ -206,6 +217,7 @@ templ Image(viewData ViewData) {
 	} else {
 		@layoutSplitView(viewData)
 	}
+	@Color(viewData.Colors)
 	<form id="kiosk-history" hx-swap-oob="true">
 		for _, historyEntry := range viewData.History {
 			<input type="hidden" class="kiosk-history--entry" name="history" value={ historyEntry }/>

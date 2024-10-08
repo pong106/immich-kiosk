@@ -31,7 +31,7 @@ const (
 	AlbumKeywordAll        string = "all"
 	AlbumKeywordShared     string = "shared"
 	AlbumKeywordFavourites string = "favourites"
-	AlbumKeywordFavorites   string = "favorites"
+	AlbumKeywordFavorites  string = "favorites"
 )
 
 var (
@@ -54,8 +54,8 @@ type ImmichError struct {
 }
 
 type ExifInfo struct {
-	Make             string    `json:"-"` // `json:"make"`
-	Model            string    `json:"-"` // `json:"model"`
+	Make             string    `json:"make"`  // `json:"make"`
+	Model            string    `json:"model"` // `json:"model"`
 	ExifImageWidth   int       `json:"exifImageWidth"`
 	ExifImageHeight  int       `json:"exifImageHeight"`
 	FileSizeInByte   int       `json:"-"` // `json:"fileSizeInByte"`
@@ -67,9 +67,9 @@ type ExifInfo struct {
 	FNumber          float64   `json:"fNumber"`
 	FocalLength      float64   `json:"focalLength"`
 	Iso              int       `json:"iso"`
-	ExposureTime     string    `json:"-"` // `json:"exposureTime"`
-	Latitude         float64   `json:"-"` // `json:"latitude"`
-	Longitude        float64   `json:"-"` // `json:"longitude"`
+	ExposureTime     string    `json:"exposureTime"` // `json:"exposureTime"`
+	Latitude         float64   `json:"latitude-"`    // `json:"latitude"`
+	Longitude        float64   `json:"longitude"`    // `json:"longitude"`
 	City             string    `json:"city"`
 	State            string    `json:"state"`
 	Country          string    `json:"country"`

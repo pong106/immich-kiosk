@@ -10,6 +10,8 @@ import (
 
 	"github.com/damongolding/immich-kiosk/config"
 	"github.com/damongolding/immich-kiosk/immich"
+
+	"image/color"
 )
 
 type ImageData struct {
@@ -21,6 +23,8 @@ type ImageData struct {
 	ImageBlurData string
 	// Date image date
 	ImageDate string
+	// Colors extracted colors from image
+	Colors []color.Color
 }
 
 type ViewData struct {
@@ -36,6 +40,8 @@ type ViewData struct {
 	CustomCss []byte
 	// instance config
 	config.Config
+	// Colors extracted colors from image
+	Colors []color.Color
 }
 
 func quriesToJson(values url.Values) map[string]any {

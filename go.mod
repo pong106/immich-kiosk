@@ -10,6 +10,7 @@ require (
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.12.0
+	github.com/marekm4/color-extractor v1.2.1
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/spf13/viper v1.20.0-alpha.6

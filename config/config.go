@@ -135,6 +135,14 @@ type Config struct {
 
 	// History past shown images
 	History []string `form:"history" default:"[]"`
+	// ShowModel whether to display model
+	ShowModel bool `mapstructure:"show_model"`
+	// ShowLocation whether to display location
+	ShowLocation bool `mapstructure:"show_location"`
+	// ShowExif whether to display exif data
+	ShowExif bool `mapstructure:"show_exif"`
+	// ShowPalette whether to display palette
+	ShowPalette bool `mapstructure:"show_palette"`
 }
 
 // New returns a new config pointer instance
