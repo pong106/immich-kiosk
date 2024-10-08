@@ -204,7 +204,7 @@ func ImageExif(info immich.ExifInfo) string {
 		if stats.Len() > 0 {
 			stats.WriteString("<span class=\"image--metadata--exif--seperator\">&#124;</span>")
 		}
-		stats.WriteString(fmt.Sprintf("%s <small>s<small>", info.ExposureTime))
+		stats.WriteString(fmt.Sprintf("%s <small>s</small>", info.ExposureTime))
 	}
 
 	if info.FocalLength != 0 {
@@ -673,6 +673,10 @@ func Image(viewData ViewData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+		}
+		templ_7745c5c3_Err = Color(viewData.Colors).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form id=\"kiosk-history\" hx-swap-oob=\"true\">")
 		if templ_7745c5c3_Err != nil {
