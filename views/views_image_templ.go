@@ -651,9 +651,9 @@ func layoutSplitView(viewData ViewData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var28 string
-					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[0].ImmichImage.ExifInfo.Make)
+					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(imageData.ImmichImage.ExifInfo.Make)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 211, Col: 94}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 211, Col: 85}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {
@@ -664,9 +664,9 @@ func layoutSplitView(viewData ViewData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var29 string
-					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[0].ImmichImage.ExifInfo.Model)
+					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(imageData.ImmichImage.ExifInfo.Model)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 211, Col: 144}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 211, Col: 126}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
