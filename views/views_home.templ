@@ -243,6 +243,7 @@ templ Home(viewData ViewData) {
 			<meta charset="UTF-8"/>
 			<meta name="apple-mobile-web-app-capable" content="yes"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="manifest" href="/assets/images/manifest.json">
 			<meta name="version" content={ viewData.KioskVersion }/>
 			<title>Immich Kiosk</title>
 			<link rel="stylesheet" href={ string(templ.URL(fmt.Sprintf("/assets/css/kiosk.%s.css", viewData.KioskVersion))) }/>
