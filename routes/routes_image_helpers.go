@@ -270,13 +270,13 @@ func imagePreFetch(requestConfig config.Config, c echo.Context, kioskDeviceID st
 
 	cacheKey := c.Request().URL.String() + kioskDeviceID
 
-	if data, found := viewDataCache.Get(cacheKey); found {
+	if data, found := ViewDataCache.Get(cacheKey); found {
 		cachedViewData = data.([]views.ViewData)
 	}
 
 	cachedViewData = append(cachedViewData, viewDataToAdd)
 
-	viewDataCache.Set(cacheKey, cachedViewData, cache.DefaultExpiration)
+	ViewDataCache.Set(cacheKey, cachedViewData, cache.DefaultExpiration)
 
 }
 
@@ -327,12 +327,12 @@ func fromCache(c echo.Context, kioskDeviceID string) []views.ViewData {
 	defer viewDataCacheMutex.Unlock()
 
 	cacheKey := c.Request().URL.String() + kioskDeviceID
-	if data, found := viewDataCache.Get(cacheKey); found {
+	if data, found := ViewDataCache.Get(cacheKey); found {
 		cachedPageData := data.([]views.ViewData)
 		if len(cachedPageData) > 0 {
 			return cachedPageData
 		}
-		viewDataCache.Delete(cacheKey)
+		ViewDataCache.Delete(cacheKey)
 	}
 	return nil
 }
@@ -347,7 +347,7 @@ func renderCachedViewData(c echo.Context, cachedViewData []views.ViewData, reque
 	cacheKey := c.Request().URL.String() + kioskDeviceID
 
 	viewDataToRender := cachedViewData[0]
-	viewDataCache.Set(cacheKey, cachedViewData[1:], cache.DefaultExpiration)
+	ViewDataCache.Set(cacheKey, cachedViewData[1:], cache.DefaultExpiration)
 
 	// Update history which will be outdated in cache
 	trimHistory(&requestConfig.History, 10)

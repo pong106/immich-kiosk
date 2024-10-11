@@ -63,6 +63,7 @@
 - [FAQ](#faq)
 - [TODO / Roadmap](#todo--roadmap)
 - [Support](#support)
+- [Help](#help)
 
 ## What is Immich Kiosk?
 Immich Kiosk is a lightweight slideshow for running on kiosk devices and browsers that uses [Immich][immich-github-url] as a data source.
@@ -83,7 +84,7 @@ Immich Kiosk is a lightweight slideshow for running on kiosk devices and browser
 **Image shot by Damon Golding**
 
 ## Example 1
-You have a two spare Raspberry Pi's laying around. One hooked up to a LCD screen and the other you connect to your TV. You install a fullscreen browser OS or service on them (I use [DietPi][dietpi-url]).
+You have a two Raspberry Pi's. One hooked up to a LCD screen and the other you connect to your TV. You install a fullscreen browser OS or service on them (I use [DietPi][dietpi-url]).
 
 You want the pi connected to the LCD screen to only show images from your recent holiday, which are stored in a album on Immich. It's an older pi so you want to disable CSS transitions, also we don't want to display the time of the image.
 
@@ -166,6 +167,8 @@ services:
       # Image display settings
       KIOSK_SHOW_PROGRESS: FALSE
       KIOSK_IMAGE_FIT: CONTAIN
+      KIOSK_IMAGE_ZOOM: FALSE
+      KIOSK_IMAGE_ZOOM_AMOUNT: 120
       # Image metadata
       KIOSK_SHOW_IMAGE_TIME: FALSE
       KIOSK_IMAGE_TIME_FORMAT: 24
@@ -173,6 +176,7 @@ services:
       KIOSK_IMAGE_DATE_FORMAT: YYYY-MM-DD
       KIOSK_SHOW_IMAGE_EXIF: FALSE
       KIOSK_SHOW_IMAGE_LOCATION: FALSE
+      KIOSK_SHOW_IMAGE_ID: FALSE
       # Kiosk settings
       KIOSK_PASSWORD: ""
       KIOSK_CACHE: TRUE
@@ -223,6 +227,8 @@ See the file config.example.yaml for an example config file
 | [image_date_format](#date-format) | KIOSK_IMAGE_DATE_FORMAT | string                     | DD/MM/YYYY  | The format of the image date. default is day/month/year. See [date format](#date-format) for more information. |
 | show_image_exif                   | KIOSK_SHOW_IMAGE_EXIF   | bool                       | false       | Display image Fnumber, Shutter speed, focal length, ISO from METADATA (if available).      |
 | show_image_location               | KIOSK_SHOW_IMAGE_LOCATION | bool                     | false       | Display the image location from METADATA (if available).                                   |
+| show_image_id                     | KIOSK_SHOW_IMAGE_ID     | bool                       | false       | Display the image Immich ID.                                   |
+
 
 ### Additional options
 The below options are NOT configurable through URL params. In the `config.yaml` file they sit under `kiosk` (demo below and in example `config.yaml`)
@@ -243,6 +249,7 @@ kiosk:
 
 | **yaml**          | **ENV**                 | **Value**    | **Default** | **Description**                                                                            |
 |-------------------|-------------------------|--------------|-------------|--------------------------------------------------------------------------------------------|
+| port              | KIOSK_PORT              | int          | 3000        | Which port Kiosk should use. NOTE that is port will need to be reflected in your compose file e.g. `KIOSK_PORT:HOST_PORT` |
 | password          | KIOSK_PASSWORD          | string       | ""          | Please see FAQs for more info. If set, requests MUST contain the password in the GET parameters  e.g. `http://192.168.0.123:3000?password=PASSWORD`. |
 | cache             | KIOSK_CACHE             | bool         | true        | Cache selective Immich api calls to reduce unnecessary calls.                              |
 | prefetch          | KIOSK_PREFETCH          | bool         | true        | Pre fetch assets in the background so images load much quicker when refresh timer ends.    |
@@ -588,11 +595,14 @@ Then to access Kiosk you MUST add the password param in your URL e.g. http://{UR
 ------
 
 ## TODO / Roadmap
-- Clock/timestamp shadow redesign
 - Whitelist for people and albums
 - Exclude list
-- Use favourites as image pool source
 - PWA
+- monitor config file changes
+- make apiCalls more resilient
+- Ken Burns
+- splitview horizontal mode
+- docker/immich healthcheck?
 
 ------
 
@@ -601,6 +611,17 @@ If this project has been helpful to you and you wish to support me, you can do s
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/damongolding)
 
+------
+
+## Help
+
+If you have found a bug or have an issue you can submit it [here](https://github.com/damongolding/immich-kiosk/issues/new/choose).
+
+If you'd like to chat or need some informal help, feel free to find me in the Kiosk channel on the Immich discord server.
+
+<a href="https://discord.com/channels/979116623879368755/1293191523927851099">
+  <img style="height:32px!important" src="https://img.shields.io/badge/Immich%20Kiosk-Kiosk%20Discord?style=flat&logo=discord&logoColor=%23fff&labelColor=%235865F2&color=%235865F2" alt="Discord button">
+</a>
 
 <!-- LINKS & IMAGES -->
 [immich-github-url]: https://github.com/immich-app/immich
