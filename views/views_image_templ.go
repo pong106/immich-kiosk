@@ -13,6 +13,8 @@ import (
 	"github.com/damongolding/immich-kiosk/config"
 	"github.com/damongolding/immich-kiosk/immich"
 	"github.com/damongolding/immich-kiosk/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"image/color"
 	"strings"
 	"time"
@@ -81,7 +83,7 @@ func ImageFitCover(ImageData, imageFit string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(ImageData)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 26, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 28, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -120,7 +122,7 @@ func ImageFitNone(ImageData, imageFit string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ImageData)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 33, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 35, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -159,7 +161,7 @@ func ImageFitContain(ImageData, imageFit string) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ImageData)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 41, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 43, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -299,7 +301,7 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ImageDateTime(viewData, imageIndex))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 128, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 130, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -344,9 +346,9 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[0].ImmichImage.ExifInfo.Make)
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(cases.Title(language.English, cases.Compact).String(viewData.Images[imageIndex].ImmichImage.ExifInfo.Make))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 143, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 145, Col: 124}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -357,9 +359,9 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[0].ImmichImage.ExifInfo.Model)
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ExifInfo.Model)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 143, Col: 112}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 145, Col: 183}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -378,7 +380,7 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 148, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 150, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -445,7 +447,7 @@ func layoutSingleView(viewData ViewData) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[0].ImageBlurData)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 158, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 160, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -575,7 +577,7 @@ func layoutSplitView(viewData ViewData) templ.Component {
 				var templ_7745c5c3_Var24 string
 				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(imageData.ImageBlurData)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 189, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 191, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
@@ -700,7 +702,7 @@ func Image(viewData ViewData) templ.Component {
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(historyEntry)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 223, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 225, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -719,7 +721,7 @@ func Image(viewData ViewData) templ.Component {
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(newHistoryEntry.ImmichImage.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 226, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image.templ`, Line: 228, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {

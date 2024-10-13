@@ -5,6 +5,8 @@ import (
 	"github.com/damongolding/immich-kiosk/config"
 	"github.com/damongolding/immich-kiosk/immich"
 	"github.com/damongolding/immich-kiosk/utils"
+    "golang.org/x/text/cases"
+    "golang.org/x/text/language"
 	"strings"
 	"time"
     "image/color"
@@ -140,7 +142,7 @@ templ imageMetadata(viewData ViewData, imageIndex int) {
 		}
 		if viewData.ShowMake{
             <div class="image--metadata--exif">
-                { viewData.Images[0].ImmichImage.ExifInfo.Make } { viewData.Images[0].ImmichImage.ExifInfo.Model }
+                { cases.Title(language.English, cases.Compact).String(viewData.Images[imageIndex].ImmichImage.ExifInfo.Make) } { viewData.Images[imageIndex].ImmichImage.ExifInfo.Model }
             </div>
         }
 		if viewData.ShowImageID {
