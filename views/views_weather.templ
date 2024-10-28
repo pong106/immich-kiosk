@@ -18,6 +18,14 @@ templ Weather(weatherData weather.WeatherLocation) {
 				{ fmt.Sprintf("%s", strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.1f", weatherData.Main.Temp), "0"), ".")) }
 				<div class="weather--temp--unit">°</div>
 			</div>
+        </div>
+		<div class="weather--temp--minmax">
+			<div class="weather--temp--value">
+				{ fmt.Sprintf("L:%s", strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.1f", weatherData.Main.TempMin), "0"), ".")) }
+				<div class="weather--temp--minmax--unit">°</div>
+				{ fmt.Sprintf("H:%s", strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.1f", weatherData.Main.TempMax), "0"), ".")) }
+				<div class="weather--temp--minmax--unit">°</div>
+		    </div>
 		</div>
 		<div class="weather--description">
 			<div class="weather--description--icon">

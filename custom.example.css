@@ -83,7 +83,10 @@ body{}
 .weather--theme-fade::before{}
 .weather{}
 .weather--temp{}
+.weather--temp--minmax{}
+.weather--temp--minmax--unit:not(:last-child){}
 .weather--temp--value{}
+.weather--temp--unit{}
 .weather--temp--unit{}
 .weather--description{}
 .weather--description--icon{}

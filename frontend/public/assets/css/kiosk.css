@@ -657,12 +657,25 @@ body {
   font-weight: bold;
   gap: 0.5rem;
 }
+.weather--temp--minmax {
+  display: flex;
+  font-size: 1rem;
+  font-weight: bold;
+  gap: 0.5rem;
+}
+.weather--temp--minmax--unit:not(:last-child) {
+  margin-right: 0.5rem;
+}
 .weather--temp--value {
   display: flex;
 }
 .weather--temp--unit {
   font-size: 1.5rem;
   padding: 0.6rem 0 0 0.1rem;
+}
+.weather--temp--unit {
+  font-size: 1rem;
+  padding: 0 0 0 0.1rem;
 }
 .weather--description {
   display: flex;
