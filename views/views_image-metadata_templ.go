@@ -24,23 +24,25 @@ import (
 // ImageLocation generates a formatted string of the image location based on EXIF information.
 // It combines the city, state, and country information if available.
 func ImageLocation(info immich.ExifInfo, hideCountries []string) string {
-	var location strings.Builder
+	var parts []string
 
 	if info.City != "" {
-		location.WriteString(info.City)
+		parts = append(parts, info.City)
 	}
 
 	if info.State != "" {
-		location.WriteString(", ")
-		location.WriteString(info.State)
+		parts = append(parts, info.State)
 	}
 
 	if info.Country != "" && !slices.Contains(hideCountries, strings.ToLower(info.Country)) {
-		location.WriteString("<span>, </span><br class=\"responsive-break\"/>")
-		location.WriteString(info.Country)
+		if len(parts) > 0 {
+			parts = append(parts, "<br class=\"responsive-break\"/>"+info.Country)
+		} else {
+			parts = append(parts, info.Country)
+		}
 	}
 
-	return location.String()
+	return strings.Join(parts, ", ")
 }
 
 // ImageExif generates a formatted string of EXIF information for an image.
@@ -81,11 +83,9 @@ func ImageExif(info immich.ExifInfo) string {
 func ImageDateTime(viewData ViewData, imageIndex int) string {
 	var imageDate string
 
-	var imageTimeFormat string
+	imageTimeFormat := "15:04"
 	if viewData.ImageTimeFormat == "12" {
 		imageTimeFormat = time.Kitchen
-	} else {
-		imageTimeFormat = time.TimeOnly
 	}
 
 	imageDateFormat := utils.DateToLayout(viewData.ImageDateFormat)
@@ -169,6 +169,25 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
+		if viewData.ShowImageDescription && viewData.Images[imageIndex].ImmichImage.ExifInfo.Description != "" {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"image--metadata--desciption\"><small>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ExifInfo.Description)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 113, Col: 67}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</small></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
 		if viewData.ShowImageExif {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"image--metadata--exif\">")
 			if templ_7745c5c3_Err != nil {
@@ -202,12 +221,12 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ID)
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 122, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 129, Col: 48}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -221,12 +240,12 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(cases.Title(language.English, cases.Compact).String(viewData.Images[imageIndex].ImmichImage.ExifInfo.Make))
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(cases.Title(language.English, cases.Compact).String(viewData.Images[imageIndex].ImmichImage.ExifInfo.Make))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 127, Col: 136}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 134, Col: 136}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -234,12 +253,12 @@ func imageMetadata(viewData ViewData, imageIndex int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ExifInfo.Model)
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(viewData.Images[imageIndex].ImmichImage.ExifInfo.Model)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 127, Col: 195}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/views_image-metadata.templ`, Line: 134, Col: 195}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

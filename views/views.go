@@ -44,7 +44,7 @@ type ViewData struct {
 	Colors []color.Color
 }
 
-func quriesToJson(values url.Values) map[string]any {
+func queriesToJson(values url.Values) map[string]any {
 
 	result := make(map[string]any)
 

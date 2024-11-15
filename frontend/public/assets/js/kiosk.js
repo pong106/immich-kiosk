@@ -40,11 +40,14 @@ var kiosk = (() => {
   // src/ts/kiosk.ts
   var kiosk_exports = {};
   __export(kiosk_exports, {
+    checkHistoryExists: () => checkHistoryExists,
     cleanupFrames: () => cleanupFrames,
+    releaseRequestLock: () => releaseRequestLock,
+    setRequestLock: () => setRequestLock,
     startPolling: () => startPolling
   });
 
-  // ../node_modules/htmx.org/dist/htmx.esm.js
+  // ../node_modules/.pnpm/htmx.org@2.0.3/node_modules/htmx.org/dist/htmx.esm.js
   var htmx2 = function() {
     "use strict";
     const htmx = {
@@ -322,7 +325,7 @@ var kiosk = (() => {
       parseInterval: null,
       /** @type {typeof internalEval} */
       _: null,
-      version: "2.0.2"
+      version: "2.0.3"
     };
     htmx.onLoad = onLoadHelper;
     htmx.process = processNode;
@@ -378,13 +381,6 @@ var kiosk = (() => {
     const VERB_SELECTOR = VERBS.map(function(verb) {
       return "[hx-" + verb + "], [data-hx-" + verb + "]";
     }).join(", ");
-    const HEAD_TAG_REGEX = makeTagRegEx("head");
-    function makeTagRegEx(tag, global = false) {
-      return new RegExp(
-        `<${tag}(\\s[^>]*>|>)([\\s\\S]*?)<\\/${tag}>`,
-        global ? "gim" : "im"
-      );
-    }
     function parseInterval(str2) {
       if (str2 == void 0) {
         return void 0;
@@ -510,7 +506,7 @@ var kiosk = (() => {
       );
     }
     function makeFragment(response) {
-      const responseWithNoHead = response.replace(HEAD_TAG_REGEX, "");
+      const responseWithNoHead = response.replace(/<head(\s[^>]*)?>[\s\S]*?<\/head>/i, "");
       const startTag = getStartTag(responseWithNoHead);
       let fragment;
       if (startTag === "html") {
@@ -656,9 +652,9 @@ var kiosk = (() => {
       return value;
     }
     function logAll() {
-      htmx.logger = function(elt, event, data) {
+      htmx.logger = function(elt, event2, data) {
         if (console) {
-          console.log(event, elt, data);
+          console.log(event2, elt, data);
         }
       };
     }
@@ -798,6 +794,11 @@ var kiosk = (() => {
         return [document.body];
       } else if (selector === "root") {
         return [getRootNode(elt, !!global)];
+      } else if (selector === "host") {
+        return [
+          /** @type ShadowRoot */
+          elt.getRootNode().host
+        ];
       } else if (selector.indexOf("global ") === 0) {
         return querySelectorAllExt(elt, selector.slice(7), true);
       } else {
@@ -836,25 +837,27 @@ var kiosk = (() => {
         return eltOrSelector;
       }
     }
-    function processEventArgs(arg1, arg2, arg3) {
+    function processEventArgs(arg1, arg2, arg3, arg4) {
       if (isFunction(arg2)) {
         return {
           target: getDocument().body,
           event: asString(arg1),
-          listener: arg2
+          listener: arg2,
+          options: arg3
         };
       } else {
         return {
           target: resolveTarget(arg1),
           event: asString(arg2),
-          listener: arg3
+          listener: arg3,
+          options: arg4
         };
       }
     }
-    function addEventListenerImpl(arg1, arg2, arg3) {
+    function addEventListenerImpl(arg1, arg2, arg3, arg4) {
       ready(function() {
-        const eventArgs = processEventArgs(arg1, arg2, arg3);
-        eventArgs.target.addEventListener(eventArgs.event, eventArgs.listener);
+        const eventArgs = processEventArgs(arg1, arg2, arg3, arg4);
+        eventArgs.target.addEventListener(eventArgs.event, eventArgs.listener, eventArgs.options);
       });
       const b = isFunction(arg2);
       return b ? arg2 : arg3;
@@ -940,7 +943,8 @@ var kiosk = (() => {
       }
       return swapStyle === "outerHTML";
     }
-    function oobSwap(oobValue, oobElement, settleInfo) {
+    function oobSwap(oobValue, oobElement, settleInfo, rootNode) {
+      rootNode = rootNode || getDocument();
       let selector = "#" + getRawAttribute(oobElement, "id");
       let swapStyle = "outerHTML";
       if (oobValue === "true") {
@@ -950,7 +954,9 @@ var kiosk = (() => {
       } else {
         swapStyle = oobValue;
       }
-      const targets = getDocument().querySelectorAll(selector);
+      oobElement.removeAttribute("hx-swap-oob");
+      oobElement.removeAttribute("data-hx-swap-oob");
+      const targets = querySelectorAllExt(rootNode, selector, false);
       if (targets) {
         forEach(
           targets,
@@ -966,7 +972,9 @@ var kiosk = (() => {
             if (!triggerEvent(target, "htmx:oobBeforeSwap", beforeSwapDetails)) return;
             target = beforeSwapDetails.target;
             if (beforeSwapDetails.shouldSwap) {
+              handlePreservedElements(fragment);
               swapWithStyle(swapStyle, target, target, fragment, settleInfo);
+              restorePreservedElements();
             }
             forEach(settleInfo.elts, function(elt) {
               triggerEvent(elt, "htmx:oobAfterSwap", beforeSwapDetails);
@@ -980,12 +988,32 @@ var kiosk = (() => {
       }
       return oobValue;
     }
+    function restorePreservedElements() {
+      const pantry = find("#--htmx-preserve-pantry--");
+      if (pantry) {
+        for (const preservedElt of [...pantry.children]) {
+          const existingElement = find("#" + preservedElt.id);
+          existingElement.parentNode.moveBefore(preservedElt, existingElement);
+          existingElement.remove();
+        }
+        pantry.remove();
+      }
+    }
     function handlePreservedElements(fragment) {
       forEach(findAll(fragment, "[hx-preserve], [data-hx-preserve]"), function(preservedElt) {
         const id = getAttributeValue(preservedElt, "id");
-        const oldElt = getDocument().getElementById(id);
-        if (oldElt != null) {
-          preservedElt.parentNode.replaceChild(oldElt, preservedElt);
+        const existingElement = getDocument().getElementById(id);
+        if (existingElement != null) {
+          if (preservedElt.moveBefore) {
+            let pantry = find("#--htmx-preserve-pantry--");
+            if (pantry == null) {
+              getDocument().body.insertAdjacentHTML("afterend", "<div id='--htmx-preserve-pantry--'></div>");
+              pantry = find("#--htmx-preserve-pantry--");
+            }
+            pantry.moveBefore(existingElement, null);
+          } else {
+            preservedElt.parentNode.replaceChild(existingElement, preservedElt);
+          }
         }
       });
     }
@@ -1095,9 +1123,13 @@ var kiosk = (() => {
       }
       let newElt;
       const eltBeforeNewContent = target.previousSibling;
-      insertNodesBefore(parentElt(target), target, fragment, settleInfo);
+      const parentNode = parentElt(target);
+      if (!parentNode) {
+        return;
+      }
+      insertNodesBefore(parentNode, target, fragment, settleInfo);
       if (eltBeforeNewContent == null) {
-        newElt = parentElt(target).firstChild;
+        newElt = parentNode.firstChild;
       } else {
         newElt = eltBeforeNewContent.nextSibling;
       }
@@ -1131,7 +1163,10 @@ var kiosk = (() => {
     }
     function swapDelete(target) {
       cleanUpElement(target);
-      return parentElt(target).removeChild(target);
+      const parent = parentElt(target);
+      if (parent) {
+        return parent.removeChild(target);
+      }
     }
     function swapInnerHTML(target, fragment, settleInfo) {
       const firstChild = target.firstChild;
@@ -1195,13 +1230,13 @@ var kiosk = (() => {
           }
       }
     }
-    function findAndSwapOobElements(fragment, settleInfo) {
+    function findAndSwapOobElements(fragment, settleInfo, rootNode) {
       var oobElts = findAll(fragment, "[hx-swap-oob], [data-hx-swap-oob]");
       forEach(oobElts, function(oobElement) {
         if (htmx.config.allowNestedOobSwaps || oobElement.parentElement === null) {
           const oobValue = getAttributeValue(oobElement, "hx-swap-oob");
           if (oobValue != null) {
-            oobSwap(oobValue, oobElement, settleInfo);
+            oobSwap(oobValue, oobElement, settleInfo, rootNode);
           }
         } else {
           oobElement.removeAttribute("hx-swap-oob");
@@ -1215,6 +1250,7 @@ var kiosk = (() => {
         swapOptions = {};
       }
       target = resolveTarget(target);
+      const rootNode = swapOptions.contextElement ? getRootNode(swapOptions.contextElement, false) : getDocument();
       const activeElt = document.activeElement;
       let selectionInfo = {};
       try {
@@ -1244,16 +1280,16 @@ var kiosk = (() => {
             const oobValue = oobSelectValue[1] || "true";
             const oobElement = fragment.querySelector("#" + id);
             if (oobElement) {
-              oobSwap(oobValue, oobElement, settleInfo);
+              oobSwap(oobValue, oobElement, settleInfo, rootNode);
             }
           }
         }
-        findAndSwapOobElements(fragment, settleInfo);
+        findAndSwapOobElements(fragment, settleInfo, rootNode);
         forEach(
           findAll(fragment, "template"),
           /** @param {HTMLTemplateElement} template */
           function(template) {
-            if (findAndSwapOobElements(template.content, settleInfo)) {
+            if (findAndSwapOobElements(template.content, settleInfo, rootNode)) {
               template.remove();
             }
           }
@@ -1267,6 +1303,7 @@ var kiosk = (() => {
         }
         handlePreservedElements(fragment);
         swapWithStyle(swapSpec.swapStyle, swapOptions.contextElement, target, fragment, settleInfo);
+        restorePreservedElements();
       }
       if (selectionInfo.elt && !bodyContains(selectionInfo.elt) && getRawAttribute(selectionInfo.elt, "id")) {
         const newActiveElt = document.getElementById(getRawAttribute(selectionInfo.elt, "id"));
@@ -1471,8 +1508,8 @@ var kiosk = (() => {
             if (eventFilter) {
               triggerSpec.eventFilter = eventFilter;
             }
+            consumeUntil(tokens, NOT_WHITESPACE);
             while (tokens.length > 0 && tokens[0] !== ",") {
-              consumeUntil(tokens, NOT_WHITESPACE);
               const token = tokens.shift();
               if (token === "changed") {
                 triggerSpec.changed = true;
@@ -1516,6 +1553,7 @@ var kiosk = (() => {
               } else {
                 triggerErrorEvent(elt, "htmx:syntax:error", { token: tokens.shift() });
               }
+              consumeUntil(tokens, NOT_WHITESPACE);
             }
             triggerSpecs.push(triggerSpec);
           }
@@ -1577,14 +1615,17 @@ var kiosk = (() => {
         nodeData.boosted = true;
         let verb, path;
         if (elt.tagName === "A") {
-          verb = "get";
+          verb = /** @type HttpVerb */
+          "get";
           path = getRawAttribute(elt, "href");
         } else {
           const rawAttribute = getRawAttribute(elt, "method");
-          verb = rawAttribute ? rawAttribute.toLowerCase() : "get";
-          if (verb === "get") {
-          }
+          verb = /** @type HttpVerb */
+          rawAttribute ? rawAttribute.toLowerCase() : "get";
           path = getRawAttribute(elt, "action");
+          if (verb === "get" && path.includes("?")) {
+            path = path.replace(/\?[^#]+/, "");
+          }
         }
         triggerSpecs.forEach(function(triggerSpec) {
           addEventListener(elt, function(node, evt) {
@@ -1642,9 +1683,14 @@ var kiosk = (() => {
         eltsToListenOn = [elt];
       }
       if (triggerSpec.changed) {
+        if (!("lastValue" in elementData)) {
+          elementData.lastValue = /* @__PURE__ */ new WeakMap();
+        }
         eltsToListenOn.forEach(function(eltToListenOn) {
-          const eltToListenOnData = getInternalData(eltToListenOn);
-          eltToListenOnData.lastValue = eltToListenOn.value;
+          if (!elementData.lastValue.has(triggerSpec)) {
+            elementData.lastValue.set(triggerSpec, /* @__PURE__ */ new WeakMap());
+          }
+          elementData.lastValue.get(triggerSpec).set(eltToListenOn, eltToListenOn.value);
         });
       }
       forEach(eltsToListenOn, function(eltToListenOn) {
@@ -1685,12 +1731,13 @@ var kiosk = (() => {
               }
             }
             if (triggerSpec.changed) {
-              const eltToListenOnData = getInternalData(eltToListenOn);
-              const value = eltToListenOn.value;
-              if (eltToListenOnData.lastValue === value) {
+              const node = event.target;
+              const value = node.value;
+              const lastValue = elementData.lastValue.get(triggerSpec);
+              if (lastValue.has(node) && lastValue.get(node) === value) {
                 return;
               }
-              eltToListenOnData.lastValue = value;
+              lastValue.set(node, value);
             }
             if (elementData.delayed) {
               clearTimeout(elementData.delayed);
@@ -1736,6 +1783,7 @@ var kiosk = (() => {
           windowIsScrolling = true;
         };
         window.addEventListener("scroll", scrollHandler);
+        window.addEventListener("resize", scrollHandler);
         setInterval(function() {
           if (windowIsScrolling) {
             windowIsScrolling = false;
@@ -1966,9 +2014,6 @@ var kiosk = (() => {
         deInitNode(elt);
         nodeData.initHash = attributeHash(elt);
         triggerEvent(elt, "htmx:beforeProcessNode");
-        if (elt.value) {
-          nodeData.lastValue = elt.value;
-        }
         const triggerSpecs = getTriggerSpecs(elt);
         const hasExplicitHttpAction = processVerbs(elt, nodeData, triggerSpecs);
         if (!hasExplicitHttpAction) {
@@ -2040,7 +2085,7 @@ var kiosk = (() => {
         detail = {};
       }
       detail.elt = elt;
-      const event = makeEvent(eventName, detail);
+      const event2 = makeEvent(eventName, detail);
       if (htmx.logger && !ignoreEventForLogging(eventName)) {
         htmx.logger(elt, eventName, detail);
       }
@@ -2048,14 +2093,14 @@ var kiosk = (() => {
         logError(detail.error);
         triggerEvent(elt, "htmx:error", { errorInfo: detail });
       }
-      let eventResult = elt.dispatchEvent(event);
+      let eventResult = elt.dispatchEvent(event2);
       const kebabName = kebabEventName(eventName);
       if (eventResult && kebabName !== eventName) {
-        const kebabedEvent = makeEvent(kebabName, event.detail);
+        const kebabedEvent = makeEvent(kebabName, event2.detail);
         eventResult = eventResult && elt.dispatchEvent(kebabedEvent);
       }
       withExtensions(asElement(elt), function(extension) {
-        eventResult = eventResult && (extension.onEvent(eventName, event) !== false && !event.defaultPrevented);
+        eventResult = eventResult && (extension.onEvent(eventName, event2) !== false && !event2.defaultPrevented);
       });
       return eventResult;
     }
@@ -2178,7 +2223,9 @@ var kiosk = (() => {
           const historyElement = getHistoryElement();
           const settleInfo = makeSettleInfo(historyElement);
           handleTitle(fragment.title);
+          handlePreservedElements(fragment);
           swapInnerHTML(historyElement, content, settleInfo);
+          restorePreservedElements();
           settleImmediately(settleInfo.tasks);
           currentPathForHistory = path;
           triggerEvent(getDocument().body, "htmx:historyRestore", { path, cacheMiss: true, serverResponse: this.response });
@@ -2196,8 +2243,10 @@ var kiosk = (() => {
         const fragment = makeFragment(cached.content);
         const historyElement = getHistoryElement();
         const settleInfo = makeSettleInfo(historyElement);
-        handleTitle(fragment.title);
+        handleTitle(cached.title);
+        handlePreservedElements(fragment);
         swapInnerHTML(historyElement, fragment, settleInfo);
+        restorePreservedElements();
         settleImmediately(settleInfo.tasks);
         getWindow().setTimeout(function() {
           window.scrollTo(0, cached.scroll);
@@ -2244,16 +2293,18 @@ var kiosk = (() => {
       return disabledElts;
     }
     function removeRequestIndicators(indicators, disabled) {
+      forEach(indicators.concat(disabled), function(ele) {
+        const internalData = getInternalData(ele);
+        internalData.requestCount = (internalData.requestCount || 1) - 1;
+      });
       forEach(indicators, function(ic) {
         const internalData = getInternalData(ic);
-        internalData.requestCount = (internalData.requestCount || 0) - 1;
         if (internalData.requestCount === 0) {
           ic.classList.remove.call(ic.classList, htmx.config.requestClass);
         }
       });
       forEach(disabled, function(disabledElement) {
         const internalData = getInternalData(disabledElement);
-        internalData.requestCount = (internalData.requestCount || 0) - 1;
         if (internalData.requestCount === 0) {
           disabledElement.removeAttribute("disabled");
           disabledElement.removeAttribute("data-disabled-by-htmx");
@@ -2674,10 +2725,14 @@ var kiosk = (() => {
       if (context) {
         if (context instanceof Element || typeof context === "string") {
           return issueAjaxRequest(verb, path, null, null, {
-            targetOverride: resolveTarget(context),
+            targetOverride: resolveTarget(context) || DUMMY_ELT,
             returnPromise: true
           });
         } else {
+          let resolvedTarget = resolveTarget(context.target);
+          if (context.target && !resolvedTarget || !resolvedTarget && !resolveTarget(context.source)) {
+            resolvedTarget = DUMMY_ELT;
+          }
           return issueAjaxRequest(
             verb,
             path,
@@ -2687,7 +2742,7 @@ var kiosk = (() => {
               handler: context.handler,
               headers: context.headers,
               values: context.values,
-              targetOverride: resolveTarget(context.target),
+              targetOverride: resolvedTarget,
               swapOverride: context.swap,
               select: context.select,
               returnPromise: true
@@ -2731,7 +2786,7 @@ var kiosk = (() => {
       const formData = new FormData();
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
-          if (typeof obj[key].forEach === "function") {
+          if (obj[key] && typeof obj[key].forEach === "function") {
             obj[key].forEach(function(v) {
               formData.append(key, v);
             });
@@ -2812,7 +2867,7 @@ var kiosk = (() => {
             return false;
           }
           target.delete(name);
-          if (typeof value.forEach === "function") {
+          if (value && typeof value.forEach === "function") {
             value.forEach(function(v) {
               target.append(name, v);
             });
@@ -2838,7 +2893,7 @@ var kiosk = (() => {
         }
       });
     }
-    function issueAjaxRequest(verb, path, elt, event, etc, confirmed) {
+    function issueAjaxRequest(verb, path, elt, event2, etc, confirmed) {
       let resolve = null;
       let reject = null;
       etc = etc != null ? etc : {};
@@ -2881,9 +2936,9 @@ var kiosk = (() => {
       const confirmQuestion = getClosestAttributeValue(elt, "hx-confirm");
       if (confirmed === void 0) {
         const issueRequest = function(skipConfirmation) {
-          return issueAjaxRequest(verb, path, elt, event, etc, !!skipConfirmation);
+          return issueAjaxRequest(verb, path, elt, event2, etc, !!skipConfirmation);
         };
-        const confirmDetails = { target, elt, path, verb, triggeringEvent: event, etc, issueRequest, question: confirmQuestion };
+        const confirmDetails = { target, elt, path, verb, triggeringEvent: event2, etc, issueRequest, question: confirmQuestion };
         if (triggerEvent(elt, "htmx:confirm", confirmDetails) === false) {
           maybeCall(resolve);
           return promise;
@@ -2925,8 +2980,8 @@ var kiosk = (() => {
           triggerEvent(syncElt, "htmx:abort");
         } else {
           if (queueStrategy == null) {
-            if (event) {
-              const eventData = getInternalData(event);
+            if (event2) {
+              const eventData = getInternalData(event2);
               if (eventData && eventData.triggerSpec && eventData.triggerSpec.queue) {
                 queueStrategy = eventData.triggerSpec.queue;
               }
@@ -2940,16 +2995,16 @@ var kiosk = (() => {
           }
           if (queueStrategy === "first" && eltData.queuedRequests.length === 0) {
             eltData.queuedRequests.push(function() {
-              issueAjaxRequest(verb, path, elt, event, etc);
+              issueAjaxRequest(verb, path, elt, event2, etc);
             });
           } else if (queueStrategy === "all") {
             eltData.queuedRequests.push(function() {
-              issueAjaxRequest(verb, path, elt, event, etc);
+              issueAjaxRequest(verb, path, elt, event2, etc);
             });
           } else if (queueStrategy === "last") {
             eltData.queuedRequests = [];
             eltData.queuedRequests.push(function() {
-              issueAjaxRequest(verb, path, elt, event, etc);
+              issueAjaxRequest(verb, path, elt, event2, etc);
             });
           }
           maybeCall(resolve);
@@ -3022,7 +3077,7 @@ var kiosk = (() => {
         withCredentials: etc.credentials || requestAttrValues.credentials || htmx.config.withCredentials,
         timeout: etc.timeout || requestAttrValues.timeout || htmx.config.timeout,
         path,
-        triggeringEvent: event
+        triggeringEvent: event2
       };
       if (!triggerEvent(elt, "htmx:configRequest", requestConfig)) {
         maybeCall(resolve);
@@ -3152,11 +3207,11 @@ var kiosk = (() => {
       var disableElts = disableElements(elt);
       forEach(["loadstart", "loadend", "progress", "abort"], function(eventName) {
         forEach([xhr, xhr.upload], function(target2) {
-          target2.addEventListener(eventName, function(event2) {
+          target2.addEventListener(eventName, function(event3) {
             triggerEvent(elt, "htmx:xhr:" + eventName, {
-              lengthComputable: event2.lengthComputable,
-              loaded: event2.loaded,
-              total: event2.total
+              lengthComputable: event3.lengthComputable,
+              loaded: event3.loaded,
+              total: event3.total
             });
           });
         });
@@ -3321,7 +3376,8 @@ var kiosk = (() => {
         serverResponse,
         isError,
         ignoreTitle,
-        selectOverride
+        selectOverride,
+        swapOverride
       }, responseInfo);
       if (responseHandling.event && !triggerEvent(target, responseHandling.event, beforeSwapDetails)) return;
       if (!triggerEvent(target, "htmx:beforeSwap", beforeSwapDetails)) return;
@@ -3330,6 +3386,7 @@ var kiosk = (() => {
       isError = beforeSwapDetails.isError;
       ignoreTitle = beforeSwapDetails.ignoreTitle;
       selectOverride = beforeSwapDetails.selectOverride;
+      swapOverride = beforeSwapDetails.swapOverride;
       responseInfo.target = target;
       responseInfo.failed = isError;
       responseInfo.successful = !isError;
@@ -3342,9 +3399,6 @@ var kiosk = (() => {
         });
         if (historyUpdate.type) {
           saveCurrentPageToHistory();
-        }
-        if (hasHeader(xhr, /HX-Reswap:/i)) {
-          swapOverride = xhr.getResponseHeader("HX-Reswap");
         }
         var swapSpec = getSwapSpecification(elt, swapOverride);
         if (!swapSpec.hasOwnProperty("ignoreTitle")) {
@@ -3546,8 +3600,8 @@ var kiosk = (() => {
         }
       });
       const originalPopstate = window.onpopstate ? window.onpopstate.bind(window) : null;
-      window.onpopstate = function(event) {
-        if (event.state && event.state.htmx) {
+      window.onpopstate = function(event2) {
+        if (event2.state && event2.state.htmx) {
           restoreHistory();
           forEach(restoredElts, function(elt) {
             triggerEvent(elt, "htmx:restored", {
@@ -3557,7 +3611,7 @@ var kiosk = (() => {
           });
         } else {
           if (originalPopstate) {
-            originalPopstate(event);
+            originalPopstate(event2);
           }
         }
       };
@@ -3676,32 +3730,35 @@ var kiosk = (() => {
   function startPolling() {
     progressBarElement = htmx_esm_default.find(".progress--bar");
     progressBarElement == null ? void 0 : progressBarElement.classList.remove("progress--bar-paused");
-    menuPausePlayButton == null ? void 0 : menuPausePlayButton.classList.remove("navigation--control--paused");
+    menuElement == null ? void 0 : menuElement.classList.add("navigation-hidden");
     lastPollTime = performance.now();
     pausedTime = null;
     animationFrameId = requestAnimationFrame(updateKiosk);
+    document.body.classList.remove("polling-paused");
+    isPaused = false;
   }
   function stopPolling() {
     if (isPaused && animationFrameId === null) return;
     cancelAnimationFrame(animationFrameId);
     progressBarElement == null ? void 0 : progressBarElement.classList.add("progress--bar-paused");
-    menuPausePlayButton == null ? void 0 : menuPausePlayButton.classList.add("navigation--control--paused");
   }
-  function pausePolling() {
+  function pausePolling(showMenu = true) {
     if (isPaused && animationFrameId === null) return;
     cancelAnimationFrame(animationFrameId);
     pausedTime = performance.now();
     progressBarElement == null ? void 0 : progressBarElement.classList.add("progress--bar-paused");
-    menuPausePlayButton == null ? void 0 : menuPausePlayButton.classList.add("navigation--control--paused");
-    menuElement == null ? void 0 : menuElement.classList.remove("navigation-hidden");
+    if (showMenu) {
+      menuElement == null ? void 0 : menuElement.classList.remove("navigation-hidden");
+      document.body.classList.add("polling-paused");
+    }
     isPaused = true;
   }
   function resumePolling() {
     if (!isPaused) return;
     animationFrameId = requestAnimationFrame(updateKiosk);
     progressBarElement == null ? void 0 : progressBarElement.classList.remove("progress--bar-paused");
-    menuPausePlayButton == null ? void 0 : menuPausePlayButton.classList.remove("navigation--control--paused");
     menuElement == null ? void 0 : menuElement.classList.add("navigation-hidden");
+    document.body.classList.remove("polling-paused");
     isPaused = false;
   }
   function togglePolling() {
@@ -3747,7 +3804,35 @@ var kiosk = (() => {
     };
   });
 
+  // src/ts/menu.ts
+  var nextImageMenuButton;
+  var prevImageMenuButton;
+  function disableImageNavigationButtons() {
+    if (!nextImageMenuButton || !prevImageMenuButton) {
+      console.error("Navigation buttons not initialized");
+      return;
+    }
+    htmx_esm_default.addClass(nextImageMenuButton, "disabled");
+    htmx_esm_default.addClass(prevImageMenuButton, "disabled");
+  }
+  function enableImageNavigationButtons() {
+    if (!nextImageMenuButton || !prevImageMenuButton) {
+      console.error("Navigation buttons not initialized");
+      return;
+    }
+    htmx_esm_default.removeClass(nextImageMenuButton, "disabled");
+    htmx_esm_default.removeClass(prevImageMenuButton, "disabled");
+  }
+  function initMenu(nextImageButton, prevImageButton) {
+    if (!nextImageButton || !prevImageButton) {
+      throw new Error("Both navigation buttons must be provided");
+    }
+    nextImageMenuButton = nextImageButton;
+    prevImageMenuButton = prevImageButton;
+  }
+
   // src/ts/kiosk.ts
+  var MAX_FRAME = 3;
   var _a;
   var kioskData = JSON.parse(
     ((_a = document.getElementById("kiosk-data")) == null ? void 0 : _a.textContent) || "{}"
@@ -3763,11 +3848,18 @@ var kiosk = (() => {
   var kiosk = htmx_esm_default.find("#kiosk");
   var menu = htmx_esm_default.find(".navigation");
   var menuInteraction = htmx_esm_default.find(
-    "#navigation-interaction-area"
+    "#navigation-interaction-area--menu"
   );
   var menuPausePlayButton2 = htmx_esm_default.find(
-    ".navigation--control"
+    ".navigation--play-pause"
   );
+  var nextImageMenuButton2 = htmx_esm_default.find(
+    ".navigation--next-image"
+  );
+  var prevImageMenuButton2 = htmx_esm_default.find(
+    ".navigation--prev-image"
+  );
+  var requestInFlight = false;
   function init() {
     return __async(this, null, function* () {
       if (kioskData.debugVerbose) {
@@ -3795,6 +3887,14 @@ var kiosk = (() => {
       } else {
         console.error("Could not start polling");
       }
+      if (nextImageMenuButton2 && prevImageMenuButton2) {
+        initMenu(
+          nextImageMenuButton2,
+          prevImageMenuButton2
+        );
+      } else {
+        console.error("Menu buttons not found");
+      }
       addEventListeners();
     });
   }
@@ -3804,6 +3904,13 @@ var kiosk = (() => {
   function addEventListeners() {
     menuInteraction == null ? void 0 : menuInteraction.addEventListener("click", togglePolling);
     menuPausePlayButton2 == null ? void 0 : menuPausePlayButton2.addEventListener("click", togglePolling);
+    document.addEventListener("keydown", (e) => {
+      if (e.target !== document.body) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePolling();
+      }
+    });
     fullscreenButton == null ? void 0 : fullscreenButton.addEventListener("click", handleFullscreenClick);
     addFullscreenEventListener(fullscreenButton);
     htmx_esm_default.on("htmx:afterRequest", function(e) {
@@ -3821,9 +3928,30 @@ var kiosk = (() => {
   }
   function cleanupFrames() {
     const frames = htmx_esm_default.findAll(".frame");
-    if (frames.length > 3) {
-      htmx_esm_default.remove(frames[0], 3e3);
+    if (frames.length > MAX_FRAME) {
+      htmx_esm_default.remove(frames[0]);
     }
+  }
+  function setRequestLock(e) {
+    if (requestInFlight) {
+      e.preventDefault();
+      return;
+    }
+    pausePolling(false);
+    disableImageNavigationButtons();
+    requestInFlight = true;
+  }
+  function releaseRequestLock() {
+    enableImageNavigationButtons();
+    requestInFlight = false;
+  }
+  function checkHistoryExists(e) {
+    const historyItems = htmx_esm_default.findAll(".kiosk-history--entry");
+    if (requestInFlight || historyItems.length < 2) {
+      e.preventDefault();
+      return;
+    }
+    setRequestLock(e);
   }
   document.addEventListener("DOMContentLoaded", () => {
     init();
