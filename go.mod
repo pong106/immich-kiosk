@@ -14,6 +14,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/marekm4/color-extractor v1.2.1
 	github.com/mcuadros/go-defaults v1.2.0
+	github.com/oapi-codegen/runtime v1.1.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.20.0-alpha.6
@@ -26,6 +27,7 @@ require (
 )
 
 require (
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/x/ansi v0.4.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
