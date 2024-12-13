@@ -292,10 +292,41 @@ func CombineQueries(urlQueries url.Values, refererURL string) (url.Values, error
 	return queries, nil
 }
 
+// MergeQueries combines two url.Values objects into a single new url.Values object.
+// Values from both input objects are preserved while avoiding duplicate values.
+// The function processes values from urlQueriesB first, followed by values from urlQueriesA.
+// For each key-value pair, duplicates are detected and only unique values are included in the result.
+// A value is considered a duplicate if the same key-value combination already exists in the merged result.
+// The function uses a nested map structure to efficiently track seen values and prevent duplicates.
+// Returns a new url.Values object containing the combined unique values from both inputs.
+func MergeQueries(urlQueriesA, urlQueriesB url.Values) url.Values {
+	merged := make(url.Values)
+	seen := make(map[string]map[string]bool)
+
+	// Helper function to process values
+	processValues := func(values url.Values) {
+		for key, vals := range values {
+			if seen[key] == nil {
+				seen[key] = make(map[string]bool)
+			}
+			for _, value := range vals {
+				if !seen[key][value] {
+					merged[key] = append(merged[key], value)
+					seen[key][value] = true
+				}
+			}
+		}
+	}
+
+	processValues(urlQueriesB)
+	processValues(urlQueriesA)
+
+	return merged
+}
+
 // RandomItem returns a random item from the given slice.
 // Returns the zero value of type T if the slice is empty.
 func RandomItem[T any](s []T) T {
-
 	var out T
 
 	if len(s) == 0 {
