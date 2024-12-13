@@ -237,6 +237,8 @@ type Config struct {
 	ShowMoreInfoImageLink bool `json:"showMoreInfoImageLink" mapstructure:"show_more_info_image_link" query:"show_more_info_image_link" form:"show_more_info_image_link" default:"true"`
 	// ShowMoreInfoQrCode displays a QR code linking to the original image in the additional information panel
 	ShowMoreInfoQrCode bool `json:"showMoreInfoQrCode" mapstructure:"show_more_info_qr_code" query:"show_more_info_qr_code" form:"show_more_info_qr_code" default:"true"`
+	// ShowMake model of camera used to take the image
+	ShowMake bool `json:"showMake" mapstructure:"show_make" query:"show_make" form:"show_make" default:"false"`
 
 	// WeatherLocations A list of locations to fetch and display weather data from. Each location
 	WeatherLocations []WeatherLocation `json:"weather" mapstructure:"weather" default:"[]"`
