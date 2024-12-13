@@ -36,6 +36,15 @@ func ImageLocation(info immich.ExifInfo, hideCountries []string) string {
 	return strings.Join(parts, ", ")
 }
 
+func ImageMake(info immich.ExifInfo) string {
+    var parts []string
+
+    if info.Make != "" {
+        parts = append(parts,fmt.Sprintf("%s %s", strings.Title(strings.ToLower(info.Make)), info.Model))
+    }
+    return strings.Join(parts, " ")
+}
+
 // ImageExif generates a formatted string of EXIF information for an image.
 // It includes f-number, exposure time, focal length, and ISO if available.
 func ImageExif(info immich.ExifInfo) string {
@@ -121,6 +130,11 @@ templ imageMetadata(viewData common.ViewData, imageIndex int) {
 					{ viewData.Images[imageIndex].ImmichImage.ExifInfo.Description }
 				</small>
 			</div>
+		}
+		if viewData.ShowMake{
+		    <div class="image--metadata--make">
+                @templ.Raw(ImageMake(viewData.Images[imageIndex].ImmichImage.ExifInfo))
+            </div>
 		}
 		if viewData.ShowImageExif {
 			<div class="image--metadata--exif">
