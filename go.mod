@@ -3,12 +3,13 @@ module github.com/damongolding/immich-kiosk
 go 1.23.4
 
 require (
-	github.com/a-h/templ v0.2.793
+	github.com/a-h/templ v0.3.819
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/charmbracelet/log v0.4.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fogleman/gg v1.3.0
+	github.com/goodsign/monday v1.0.2
 	github.com/google/go-querystring v1.1.0
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.13.3
