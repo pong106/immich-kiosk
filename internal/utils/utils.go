@@ -93,8 +93,8 @@ func DateToJavascriptLayout(input string) string {
 	replacer := strings.NewReplacer(
 		"YYYY", "yyyy",
 		"YY", "yy",
-		"DDDD", "EEEE",
-		"DDD", "EEE",
+		"DDDD", "eeee",
+		"DDD", "eee",
 		"DD", "dd",
 		"D", "d",
 	)
@@ -334,11 +334,13 @@ func RandomItem[T any](s []T) T {
 		return out
 	}
 
-	rand.Shuffle(len(s), func(i, j int) {
-		s[i], s[j] = s[j], s[i]
+	copySlice := append([]T(nil), s...)
+
+	rand.Shuffle(len(copySlice), func(i, j int) {
+		copySlice[i], copySlice[j] = copySlice[j], copySlice[i]
 	})
 
-	return s[0]
+	return copySlice[0]
 }
 
 // calculateTotalWeight calculates the sum of logarithmic weights for all assets in the given slice.
@@ -724,4 +726,11 @@ func SystemLanguage() string {
 	}
 
 	return "en_GB"
+}
+
+// TrimHistory ensures that the history slice doesn't exceed the specified maximum length.
+func TrimHistory(history *[]string, maxLength int) {
+	if len(*history) > maxLength {
+		*history = (*history)[len(*history)-maxLength:]
+	}
 }
