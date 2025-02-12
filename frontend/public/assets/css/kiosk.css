@@ -477,7 +477,7 @@ form {
           align-items: center;
   gap: 0.5rem;
 }
-.asset--metadata--is-first .asset--metadata--icon {
+.right-align-icons .asset--metadata--icon {
   -webkit-order: 2;
      -moz-box-ordinal-group: 3;
           order: 2;
