@@ -53,9 +53,11 @@
 - [Android](#android)
 - [Configuration](#configuration)
   - [Changing settings via URL](#changing-settings-via-url)
+  - [Multiple Users](#multiple-users)
   - [Albums](#albums)
   - [People](#people)
   - [Date range](#date-range)
+  - [Tags](#tags)
   - [Filters](#filters)
   - [Image fit](#image-fit)
   - [Image effects](#image-effects)
@@ -94,6 +96,15 @@ Immich Kiosk is a lightweight slideshow for running on kiosk devices and browser
 
 ![Kiosk theme fade](/assets/preview.jpeg)
 **Image shot by Damon Golding**
+
+![Kiosk theme fade with more info overlay](/assets/more-info.jpeg)
+**Image shot by Damon Golding**
+
+![Kiosk portrait layout](/assets/portrait.jpeg)
+**Image shot by [Toa Heftiba](https://unsplash.com/@heftiba)** using `layout=portrait` (portrait images only layout)
+
+![Kiosk splitview layout](/assets/layout-splitview.jpg)
+**Images shot by [Toa Heftiba](https://unsplash.com/@heftiba) (left) and [Kerstin Wrba](https://unsplash.com/@kerstinwrba) (right)** using `layout=splitview`
 
 ## Example 1
 You have a two Raspberry Pi's. One hooked up to a LCD screen and the other you connect to your TV. You install a fullscreen browser OS or service on them (I use [DietPi][dietpi-url]).
@@ -248,8 +259,10 @@ services:
       KIOSK_ALBUM: "ALBUM_ID,ALBUM_ID,ALBUM_ID"
       KIOSK_ALBUM_ORDER: random
       KIOSK_EXCLUDED_ALBUMS: "ALBUM_ID,ALBUM_ID,ALBUM_ID"
+      KIOSK_EXPERIMENTAL_ALBUM_VIDEO: false
       KIOSK_PERSON: "PERSON_ID,PERSON_ID,PERSON_ID"
       KIOSK_DATE: "DATE_RANGE,DATE_RANGE,DATE_RANGE"
+      KIOSK_TAG: "TAG_VALUE,TAG_VALUE,TAG_VALUE"
       KIOSK_MEMORIES: false
       KIOSK_BLACKLIST: "ASSET_ID,ASSET_ID,ASSET_ID"
       # FILTER
@@ -359,7 +372,7 @@ See the file `config.example.yaml` for an example config file
 | immich_url                        | KIOSK_IMMICH_URL        | string                     | ""          | The URL of your Immich server. MUST include a port if one is needed e.g. `http://192.168.1.123:2283`. |
 | immich_external_url             | KIOSK_IMMICH_EXTERNAL_URL | string                     | ""          | The public URL of your Immich server used for generating links and QR codes in the additional information overlay. Useful when accessing Immich through a reverse proxy or different external URL. Example: "https://photos.example.com". If not set, falls back to immich_url. |
 | show_time                         | KIOSK_SHOW_TIME         | bool                       | false       | Display clock.                                                                             |
-| time_format                       | KIOSK_TIME_FORMAT       | 12 \| 24                   | 24          | Display clock time in either 12 hour or 24 hour format. Can either be 12 or 24.            |
+| time_format                       | KIOSK_TIME_FORMAT       | 24 \| 12                   | 24          | Display clock time in either 12 hour or 24 hour format. Can either be 12 or 24.            |
 | show_date                         | KIOSK_SHOW_DATE         | bool                       | false       | Display the date.                                                                          |
 | [date_format](#date-format)       | KIOSK_DATE_FORMAT       | string                     | DD/MM/YYYY  | The format of the date. default is day/month/year. See [date format](#date-format) for more information.|
 | refresh                           | KIOSK_REFRESH           | int                        | 60          | The amount in seconds a image will be displayed for.                                       |
@@ -368,11 +381,12 @@ See the file `config.example.yaml` for an example config file
 | use_gpu                           | KIOSK_USE_GPU           | bool                       | true        | Enable GPU acceleration for improved performance (e.g., CSS transforms) |
 | show_archived                     | KIOSK_SHOW_ARCHIVED     | bool                       | false       | Allow assets marked as archived to be displayed.                                           |
 | [album](#albums)                  | KIOSK_ALBUM             | []string                   | []          | The ID(s) of a specific album or albums you want to display. See [Albums](#albums) for more information. |
-| [album_order](#album-order)       | KIOSK_ALBUM_ORDER       | string                     | random      | The order an album's assets will be displayed. See [Album order](#album-order) for more information. |
+| [album_order](#album-order)       | KIOSK_ALBUM_ORDER       | random \| newest \| oldest | random  | The order an album's assets will be displayed. See [Album order](#album-order) for more information. |
 | [excluded_albums](#exclude-albums) | KIOSK_EXCLUDED_ALBUMS  | []string                   | []          | The ID(s) of a specific album or albums you want to exclude. See [Exclude albums](#exclude-albums) for more information. |
 | [experimental_album_video](#experimental-album-video-support) | KIOSK_EXPERIMENTAL_ALBUM_VIDEO  | bool | false | Enable experimental video playback for albums. See [experimental album video](#experimental-album-video-support) for more information. |
 | [person](#people)                 | KIOSK_PERSON            | []string                   | []          | The ID(s) of a specific person or people you want to display. See [People](#people) for more information. |
 | [date](#date-range)               | KIOSK_DATE              | []string                   | []          | A date range or ranges in `YYYY-MM-DD_to_YYYY-MM-DD` format. See [Date range](#date-range) for more information. |
+| [tag](#tags)                      | KIOSK_TAG               | []string                   | []          | Tag or tags you want to display. See [Tags](#tags) for more information. |
 | memories                          | KIOSK_MEMORIES          | bool                       | false       | Display memory lane assets. |
 | blacklist                         | KIOSK_BLACKLIST         | []string                   | []          | The ID(s) of any specific assets you want Kiosk to skip/exclude from displaying. You can also tag assets in Immich with "kiosk-skip" to achieve the same. |
 | [date_filter](#filters)           | KIOSK_DATE_FILTER       | string                     | ""          | Filter person and random assets by date. See [date filter](#filters) for more information. |
@@ -383,7 +397,7 @@ See the file `config.example.yaml` for an example config file
 | font_size                         | KIOSK_FONT_SIZE         | int                        | 100         | The base font size for Kiosk. Default is 100% (16px). DO NOT include the % character.      |
 | background_blur                   | KIOSK_BACKGROUND_BLUR   | bool                       | true        | Display a blurred version of the image as a background.                                    |
 | [theme](#themes)                  | KIOSK_THEME             | fade \| solid              | fade        | Which theme to use. See [Themes](#themes) for more information.                            |
-| [layout](#layouts)                | KIOSK_LAYOUT            | [Layouts](#layouts)        | single      | Which layout to use. See [Layouts](#layouts) for more information.                         |
+| [layout](#layouts)                | KIOSK_LAYOUT            | single \| portrait \| landscape \| splitview \| splitview-landscape | Which layout to use. See [Layouts](#layouts) for more information.                         |
 | [sleep_start](#sleep-mode)        | KIOSK_SLEEP_START       | string                     | ""          | Time (in 24hr format) to start sleep mode. See [Sleep mode](#sleep-mode) for more information. |
 | [sleep_end](#sleep-mode)          | KIOSK_SLEEP_END         | string                     | ""          | Time (in 24hr format) to end sleep mode. See [Sleep mode](#sleep-mode) for more information. |
 | [disable_sleep](#sleep-mode)      | N/A                     | bool                       | false       | Bypass sleep mode by adding `disable_sleep=true` to the URL. See [Sleep mode](#sleep-mode) for more information. |
@@ -392,8 +406,8 @@ See the file `config.example.yaml` for an example config file
 | fade_transition_duration          | KIOSK_FADE_TRANSITION_DURATION | float               | 1           | The duration of the fade (in seconds) transition.                                          |
 | cross_fade_transition_duration    | KIOSK_CROSS_FADE_TRANSITION_DURATION | float         | 1           | The duration of the cross-fade (in seconds) transition.                                    |
 | show_progress                     | KIOSK_SHOW_PROGRESS     | bool                       | false       | Display a progress bar for when image will refresh.                                        |
-| [image_fit](#image-fit)           | KIOSK_IMAGE_FIT         | cover \| contain \| none   | contain     | How your image will fit on the screen. Default is contain. See [Image fit](#image-fit) for more info. |
-| [image_effect](#image-effects)    | KIOSK_IMAGE_EFFECT      | zoom \| smart-zoom         | ""          | Add an effect to images.                                                                   |
+| [image_fit](#image-fit)           | KIOSK_IMAGE_FIT         | contain \| cover \| none   | contain     | How your image will fit on the screen. Default is contain. See [Image fit](#image-fit) for more info. |
+| [image_effect](#image-effects)    | KIOSK_IMAGE_EFFECT      | none \| zoom \| smart-zoom | none        | Add an effect to images.                                                                   |
 | [image_effect_amount](#image-effects) | KIOSK_IMAGE_EFFECT_AMOUNT | int                  | 120         | Set the intensity of the image effect. Use a number between 100 (minimum) and higher, without the % symbol. |
 | use_original_image                | KIOSK_USE_ORIGINAL_IMAGE | bool                      | false       | Use the original image. NOTE: If the original is not a png, gif, jpeg or webp Kiosk will fallback to using the preview. |
 | show_album_name                   | KIOSK_SHOW_ALBUM_NAME   | bool                       | false       | Display album name(s) that the asset appears in.                                           |
@@ -457,6 +471,16 @@ The above would set refresh to 120 seconds (2 minutes), turn off the background 
 
 ## Multiple Users
 
+> [!IMPORTANT]
+> This feature can only be configured using a `config.yaml` file.
+
+> [!IMPORTANT]
+> It is not possible to mix assets from different accounts.  
+> The example below will not work. 
+> ```url
+> http://{URL}?user=john&person=PERSON_ID&user=jane&person=PERSON_ID
+> ``` 
+
 > [!TIP]
 > You can remove specific asset sources that were previously set in your `config.yaml` or environment variables by using `none` in the URL query parameters.
 >
@@ -487,7 +511,7 @@ https://{URL}?user=john
 ## Albums
 
 ### Getting an albums ID from Immich
-1. Open Immich's web interface and click on "Albums" in the left hand navigation.
+1. Open Immich's web interface and click on "Albums" in the left-hand navigation.
 2. Click on the album you want the ID of.
 3. The url will now look something like this `http://192.168.86.123:2283/albums/a04175f4-97bb-4d97-8d49-3700263043e5`.
 4. The album ID is everything after `albums/`, so in this example it would be `a04175f4-97bb-4d97-8d49-3700263043e5`.
@@ -515,7 +539,7 @@ environment:
   KIOSK_ALBUM: "ALBUM_ID,ALBUM_ID,ALBUM_ID"
 ```
 
-3. via url quires:
+3. via url queries:
 
 ```url
 http://{URL}?album=ALBUM_ID&album=ALBUM_ID&album=ALBUM_ID
@@ -559,6 +583,22 @@ The newest assets are displayed first.
 ### `oldest`, `ascending` or `asc`
 The oldest assets are displayed first.
 
+1. via config.yaml file
+```yaml
+album_order: random
+```
+
+2. via ENV in your docker-compose file
+```yaml
+environment:
+  KIOSK_ALBUM_ORDER: random
+```
+
+3. via url queries:
+```url
+http://{URL}?album_order=random
+```
+
 ------
 
 ## Experimental Album Video Support
@@ -600,6 +640,22 @@ Admin Panel -> System Settings -> Video Transcoding
    - Video playback completes
    - Any playback errors are detected
 
+1. via config.yaml file
+```yaml
+experimental_album_video: true
+```
+
+2. via ENV in your docker-compose file
+```yaml
+environment:
+  KIOSK_EXPERIMENTAL_ALBUM_VIDEO: true
+```
+
+3. via url queries:
+```url
+http://{URL}?experimental_album_video=true
+```
+
 ### Troubleshooting Tips
 - Ensure your videos are transcoded to H264 format.
 - Check browser compatibility with your video codecs.
@@ -616,7 +672,7 @@ This feature allows you to prevent specific albums from being displayed in the s
 > Excluded albums take precedence over album selection methods. If an album is in both the selected albums and excluded albums lists, it will be excluded.
 
 ### Getting an albums ID from Immich
-1. Open Immich's web interface and click on "Albums" in the left hand navigation.
+1. Open Immich's web interface and click on "Albums" in the left-hand navigation.
 2. Click on the album you want the ID of.
 3. The url will now look something like this `http://192.168.86.123:2283/albums/a04175f4-97bb-4d97-8d49-3700263043e5`.
 4. The album ID is everything after `albums/`, so in this example it would be `a04175f4-97bb-4d97-8d49-3700263043e5`.
@@ -641,7 +697,7 @@ environment:
   KIOSK_EXCLUDED_ALBUMS: "ALBUM_ID,ALBUM_ID,ALBUM_ID"
 ```
 
-3. via url quires:
+3. via url queries:
 
 > [!NOTE]
 > it is `exclude_album=` and not `excluded_albums=`
@@ -655,7 +711,7 @@ http://{URL}?exclude_album=ALBUM_ID&exclude_album=ALBUM_ID&exclude_album=ALBUM_I
 ### People
 
 ### Getting a person's ID from Immich
-1. Open Immich's web interface and click on "Explore" in the left hand navigation.
+1. Open Immich's web interface and click on "Explore" in the left-hand navigation.
 2. Click on the person you want the ID of (you may have to click "view all" if you don't see them).
 3. The url will now look something like this `http://192.168.86.123:2283/people/a04175f4-97bb-4d97-8d49-3700263043e5`.
 4. The persons ID is everything after `people/`, so in this example it would be `a04175f4-97bb-4d97-8d49-3700263043e5`.
@@ -685,7 +741,7 @@ environment:
   KIOSK_PERSON: "PERSON_ID,PERSON_ID,PERSON_ID"
 ```
 
-3. via url quires
+3. via url queries
 
 ```url
 http://{URL}?person=PERSON_ID&person=PERSON_ID&person=PERSON_ID
@@ -731,11 +787,51 @@ environment:
   KIOSK_DATE: "DATE_RANGE,DATE_RANGE,DATE_RANGE"
 ```
 
-3. via url quires
+3. via url queries
 
 ```url
 http://{URL}?date=DATE_RANGE&date=DATE_RANGE&date=DATE_RANGE
 ```
+
+------
+
+## Tags
+
+### Getting a tag value from Immich
+1. Open Immich's web interface and click on "Tags" in the left-hand navigation.
+2. Click on the tag you want the value of.
+3. The url will now look something like this `http://192.168.86.123:2283/tags?path=cake`.
+4. The tag value is everything after `path=`, so in this example it would be `cake`.
+
+### How multiple tags work
+When you specify multiple tags, Immich Kiosk creates a pool of all the requested tag values.
+For each asset refresh, Kiosk randomly selects one of the tag values from this pool and fetches an asset associated with it.
+
+There are **three** ways you can set multiple tags:
+
+> [!NOTE]
+> These methods are applied in order of precedence. URL queries take the highest priority, followed by environment variables, and finally the config.yaml file.
+> Each subsequent method overwrites the settings from the previous ones.
+
+1. via config.yaml file
+```yaml
+tag:
+  - TAG_VALUE
+  - TAG_VALUE
+```
+
+2. via ENV in your docker-compose file use a `,` to separate IDs
+```yaml
+environment:
+  KIOSK_TAG: "TAG_VALUE,TAG_VALUE,TAG_VALUE"
+```
+
+3. via url queries:
+
+```url
+http://{URL}?tag=TAG_VALUE&tag=TAG_VALUE&tag=TAG_VALUE
+```
+
 
 ------
 
@@ -880,7 +976,7 @@ When a landscape image is fetched, Kiosk automatically retrieves a second landsc
 ## Sleep mode
 
 > [!TIP]
-> You can add `disable_sleep=true` to your URL quires to bypass sleepmode.
+> You can add `disable_sleep=true` to your URL queries to bypass sleepmode.
 
 ### Enabling Sleep Mode:
 Setting both `sleep_start` and `sleep_end` using the 24 hour format will enable sleep mode.
@@ -925,6 +1021,9 @@ To disable custom CSS for a specific device, add `custom_css=false` to the URL p
 ------
 
 ## Weather
+
+> [!IMPORTANT]
+> This feature can only be configured using a `config.yaml` file.
 
 > [!NOTE]
 > To use the weather feature, you’ll need an API key from [OpenWeatherMap](https://openweathermap.org).
@@ -995,10 +1094,14 @@ Kiosk's display is divided into interactive zones:
 | → Right Arrow | Next Image(s)                                            |
 | ← Left Arrow  | Previous Image(s)                                        |
 | i Key         | Play/Pause and Toggle Menu and display more info overlay |
+| r Key         | Play/Pause and Toggle Menu and redirects info overlay    |
 
 ------
 
 ## Redirects
+
+> [!IMPORTANT]
+> This feature can only be configured using a `config.yaml` file.
 
 Redirects provide a simple way to map short, memorable paths to longer URLs.
 It's particularly useful for creating friendly URLs that redirect to more
@@ -1056,6 +1159,9 @@ kiosk:
 ------
 
 ## Webhooks
+
+> [!IMPORTANT]
+> This feature can only be configured using a `config.yaml` file.
 
 > [!TIP]
 > To include the `clientName` in your webhook payload, append `client=YOUR_CLIENT_NAME` to your URL parameters.
