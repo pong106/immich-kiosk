@@ -1,9 +1,9 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": false
   },
   "files": {
     "ignoreUnknown": true,
@@ -13,10 +13,10 @@
       "**/*.tsx",
       "**/*.jsx",
       "*.json",
-      "!public/**/*",
-      "!node_modules/**/*",
-      "!dist/**/*",
-      "!build/**/*"
+      "!public",
+      "!node_modules",
+      "!dist",
+      "!build"
     ]
   },
   "linter": {

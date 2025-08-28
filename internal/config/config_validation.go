@@ -361,11 +361,20 @@ func (c *Config) checkOffline() {
 	}
 }
 
-func checkSchema(config map[string]any) bool {
+func checkSchema(config map[string]any, level string) bool {
 
 	if !IsSchemaLoaded() {
 		log.Warn("Schema not loaded, skipping validation")
 		return true
+	}
+
+	// if we are using a config.yaml file but supplying immich_api_key || immich_url via ENVs get them
+	if v, ok := config["immich_api_key"]; !ok || v == "" {
+		config["immich_api_key"] = os.Getenv("KIOSK_IMMICH_API_KEY")
+	}
+
+	if v, ok := config["immich_url"]; !ok || v == "" {
+		config["immich_url"] = os.Getenv("KIOSK_IMMICH_URL")
 	}
 
 	jsonData, err := json.Marshal(config)
@@ -386,9 +395,17 @@ func checkSchema(config map[string]any) bool {
 	}
 
 	if !result.Valid() {
-		log.Warn("Config validation failed:")
-		for _, desc := range result.Errors() {
-			log.Warnf("- %s", desc)
+		switch strings.ToLower(level) {
+		case "warning":
+			log.Warn("Config validation failed:")
+			for _, desc := range result.Errors() {
+				log.Warnf("- %s", desc)
+			}
+		default:
+			log.Error("Config validation failed:")
+			for _, desc := range result.Errors() {
+				log.Errorf("- %s", desc)
+			}
 		}
 		return false
 	}
