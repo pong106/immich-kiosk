@@ -13,6 +13,12 @@
       "type": "string",
       "format": "uri"
     },
+    "show_model": {
+      "type": "boolean"
+    },
+    "show_make": {
+      "type": "boolean"
+    },
     "show_time": {
       "type": "boolean"
     },
