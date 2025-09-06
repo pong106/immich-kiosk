@@ -23,7 +23,11 @@
       "type": "boolean"
     },
     "time_format": {
-      "type": "integer"
+      "oneOf": [
+        { "type": "string", "enum": ["12", "24"] },
+        { "type": "integer", "enum": [12, 24] }
+      ],
+      "examples": ["12", "24"]
     },
     "show_date": {
       "type": "boolean"
@@ -53,7 +57,8 @@
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "require_all_people": {
       "type": "boolean"
@@ -62,13 +67,15 @@
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "albums": {
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "album_video": {
       "type": "boolean"
@@ -80,19 +87,22 @@
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "dates": {
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "tags": {
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "memories": {
       "type": "boolean"
@@ -108,6 +118,9 @@
     },
     "menu_position": {
       "type": "string"
+    },
+    "disable_navigation": {
+      "type": "boolean"
     },
     "disable_ui": {
       "type": "boolean"
@@ -145,6 +158,9 @@
     "sleep_icon": {
       "type": "boolean"
     },
+    "disable_sleep": {
+      "type": "boolean"
+    },
     "transition": {
       "type": "string"
     },
@@ -158,6 +174,12 @@
       "type": "boolean"
     },
     "progress_bar_position": {
+      "type": "string"
+    },
+    "custom_css": {
+      "type": "boolean"
+    },
+    "custom_css_class": {
       "type": "string"
     },
     "image_fit": {
@@ -194,7 +216,11 @@
       "type": "boolean"
     },
     "image_time_format": {
-      "type": "integer"
+      "oneOf": [
+        { "type": "string", "enum": ["12", "24"] },
+        { "type": "integer", "enum": [12, 24] }
+      ],
+      "examples": ["12", "24"]
     },
     "show_image_date": {
       "type": "boolean"
@@ -218,7 +244,8 @@
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "show_image_id": {
       "type": "boolean"
@@ -236,13 +263,15 @@
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "hide_button_action": {
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "weather": {
       "type": "array",
@@ -254,13 +283,13 @@
             "type": "string"
           },
           "lat": {
-            "type": "number"
+            "type": ["number", "string"]
           },
           "lon": {
-            "type": "number"
+            "type": ["number", "string"]
           },
           "api": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "unit": {
             "type": "string"
@@ -297,11 +326,19 @@
         "required": ["url", "event"]
       }
     },
+    "blacklist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
     "iframe": {
       "type": ["string", "array"],
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "immich_users_api_keys": {
       "type": "object",
@@ -312,6 +349,13 @@
         }
       },
       "required": []
+    },
+    "user": {
+      "type": ["string", "array"],
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
     },
     "show_user": {
       "type": "boolean"
@@ -344,6 +388,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "version": {
+          "type": "string"
+        },
         "debug": {
           "type": "boolean"
         },
@@ -352,9 +399,9 @@
         },
         "config_validation_level": {
           "type": "string",
-          "enum": ["warning", "error"],
+          "enum": ["warning", "error", "off"],
           "default": "error",
-          "description": "Controls how invalid configuration is handled. 'warning' logs a warning and continues; 'error' treats invalid configuration as fatal."
+          "description": "Controls how invalid configuration is handled. 'warning' logs a warning and continues; 'error' treats invalid configuration as fatal; 'off' disables validation checks."
         },
         "port": {
           "type": "integer"
@@ -366,7 +413,9 @@
           "type": "boolean"
         },
         "fetched_assets_size": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
         },
         "http_timeout": {
           "type": "integer"
@@ -407,6 +456,9 @@
             },
             "required": ["name", "url"]
           }
+        },
+        "demo_mode": {
+          "type": "boolean"
         }
       },
       "required": []
