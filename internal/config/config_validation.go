@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"slices"
 	"strconv"
@@ -81,6 +82,66 @@ func (c *Config) checkLowercaseTaggedFields() {
 	}
 }
 
+// loadSecretFromFile attempts to read and return a secret from the specified file
+func loadSecretFromFile(filePath string) (string, bool) {
+	data, readErr := os.ReadFile(filePath)
+	if readErr != nil {
+		if os.IsNotExist(readErr) {
+			log.Warn("Secret file not found", "file", filePath)
+		} else {
+			log.Error("Failed to read secret file", "file", filePath, "error", readErr)
+		}
+		return "", false
+	}
+
+	value := strings.TrimSpace(string(data))
+	if value == "" {
+		log.Warn("Secret file is empty", "file", filePath)
+		return "", false
+	}
+
+	return value, true
+}
+
+func (c *Config) checkSecrets() {
+	if c.ImmichAPIKey != "" {
+		return
+	}
+
+	apiKeyFile := os.Getenv(apiKeyFileEnv)
+	if apiKeyFile != "" {
+		apiKeyFile = filepath.Clean(apiKeyFile)
+		if apiKey, ok := loadSecretFromFile(apiKeyFile); ok {
+			log.Info("Loaded Immich API key", "source", "docker secret")
+			c.ImmichAPIKey = apiKey
+		}
+	}
+
+	passwordFile := os.Getenv(passwordFileEnv)
+	if passwordFile != "" {
+		passwordFile = filepath.Clean(passwordFile)
+		if password, ok := loadSecretFromFile(passwordFile); ok {
+			log.Info("Loaded password", "source", "docker secret")
+			c.Kiosk.Password = password
+		}
+	}
+
+	credsDir := os.Getenv(systemdCredDirEnv)
+	if credsDir != "" {
+		systemdAPIFile := filepath.Clean(filepath.Join(credsDir, systemdCredAPIKeyFileEnv))
+		if apiKey, ok := loadSecretFromFile(systemdAPIFile); ok {
+			log.Info("Loaded Immich API key", "source", "systemd credential")
+			c.ImmichAPIKey = apiKey
+		}
+
+		systemdPasswordFile := filepath.Clean(filepath.Join(credsDir, systemdCredPasswordFileEnv))
+		if password, ok := loadSecretFromFile(systemdPasswordFile); ok {
+			log.Info("Loaded password", "source", "systemd credential")
+			c.Kiosk.Password = password
+		}
+	}
+}
+
 // checkRequiredFields verifies that all required configuration fields are set.
 // Currently checks for:
 // - ImmichUrl: The base URL for the Immich server
@@ -144,6 +205,8 @@ func (c *Config) checkAssetBuckets() {
 	c.ExcludedTags = c.cleanupSlice(c.ExcludedTags, "TAG_VALUE")
 
 	c.Dates = c.cleanupSlice(c.Dates, "DATE_RANGE", "YYYY-MM-DD_to_YYYY-MM-DD")
+
+	c.ExcludedPartners = c.cleanupSlice(c.ExcludedPartners, "PARTNER_ID")
 }
 
 // checkExcludedAlbums filters out any albums from c.Album that are present in

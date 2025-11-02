@@ -111,6 +111,13 @@
       },
       "uniqueItems": true
     },
+    "excluded_partners": {
+      "type": ["string", "array"],
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
     "memories": {
       "type": "boolean"
     },
@@ -134,6 +141,12 @@
     },
     "frameless": {
       "type": "boolean"
+    },
+    "frame_padding": {
+      "type": ["integer", "array"],
+      "items": {
+        "type": "integer"
+      }
     },
     "hide_cursor": {
       "type": "boolean"
