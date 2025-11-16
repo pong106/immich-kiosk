@@ -14,10 +14,10 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-l
 # Frontend Build
 FROM frontend-base AS frontend-build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm css && pnpm js
+RUN pnpm css && pnpm js && pnpm url-builder
 
 # Go Builder
-FROM --platform=$BUILDPLATFORM golang:1.25.3-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.25.4-alpine AS build
 
 ARG VERSION=demo
 ARG TARGETOS
@@ -27,7 +27,7 @@ WORKDIR /app
 
 COPY . .
 COPY --from=frontend-build /app/frontend/public/assets/css /app/frontend/public/assets/css
-COPY --from=frontend-build /app/frontend/public/assets/js/kiosk.js /app/frontend/public/assets/js/kiosk.js
+COPY --from=frontend-build /app/frontend/public/assets/js/ /app/frontend/public/assets/js/
 
 RUN go mod download
 RUN go tool templ generate
