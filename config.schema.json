@@ -331,7 +331,7 @@
             "type": "boolean"
           }
         },
-        "required": ["name", "lat", "lon", "api"]
+        "required": ["name", "lat", "lon"]
       }
     },
     "webhooks": {
@@ -345,6 +345,9 @@
             "format": "uri"
           },
           "event": {
+            "type": "string"
+          },
+          "secret": {
             "type": "string"
           }
         },
