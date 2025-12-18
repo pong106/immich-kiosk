@@ -1,6 +1,6 @@
 version: "3"
 env:
-  VERSION: 0.28.3
+  VERSION: 0.29.0
 
 includes:
   frontend:
@@ -31,7 +31,7 @@ tasks:
 
   # Backend tasks
   templ:
-    desc: Generate templ templates`
+    desc: Generate templ templates
     cmds:
       - go tool templ generate
 
