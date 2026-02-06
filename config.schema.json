@@ -145,6 +145,11 @@
     "show_videos": {
       "type": "boolean"
     },
+    "exclude_videos_over": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Exclude videos over X seconds"
+    },
     "live_photos": {
       "type": "boolean"
     },
@@ -156,6 +161,16 @@
     },
     "disable_navigation": {
       "type": "boolean"
+    },
+    "up_arrow_action": {
+      "type": "string",
+      "enum": ["", "mute", "redirects", "pause", "more-info", "fullscreen"],
+      "description": "Action to perform when the up arrow is triggered"
+    },
+    "down_arrow_action": {
+      "type": "string",
+      "enum": ["", "mute", "redirects", "pause", "more-info", "fullscreen"],
+      "description": "Action to perform when the down arrow is triggered"
     },
     "disable_ui": {
       "type": "boolean"
@@ -206,10 +221,12 @@
       "type": "string"
     },
     "fade_transition_duration": {
-      "type": "integer"
+      "type": "number",
+      "minimum": 0
     },
     "cross_fade_transition_duration": {
-      "type": "integer"
+      "type": "number",
+      "minimum": 0
     },
     "show_clear_cache_button": {
       "type": "boolean"
