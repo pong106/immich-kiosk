@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 	"github.com/damongolding/immich-kiosk/internal/config"
 	"github.com/damongolding/immich-kiosk/internal/templates/partials"
 	"github.com/damongolding/immich-kiosk/internal/weather"
@@ -29,6 +29,10 @@ func Weather(baseConfig *config.Config) echo.HandlerFunc {
 		requestID := requestData.RequestID
 
 		locationName := c.FormValue(weather.WeatherParam)
+		// Enable weather rotation in demo mode
+		if baseConfig.Kiosk.DemoMode {
+			locationName = weather.WeatherRotation
+		}
 		nextWeatherRotation := 0
 
 		log.Debug(

@@ -32,7 +32,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 	"github.com/damongolding/immich-kiosk/internal/kiosk"
 	"github.com/goodsign/monday"
 	"github.com/mcuadros/go-defaults"
@@ -155,16 +155,23 @@ type WeatherConfig struct {
 	HasDefault bool `json:"-" yaml:"-" default:"false"`
 }
 
+type WeatherLocationStatOptions struct {
+	Humidity   bool `yaml:"humidity" mapstructure:"humidity" default:"false"`
+	Wind       bool `yaml:"wind" mapstructure:"wind" default:"false"`
+	Visibility bool `yaml:"visibility" mapstructure:"visibility" default:"false"`
+}
+
 type WeatherLocation struct {
-	Name      string `yaml:"name" mapstructure:"name" redact:"true"`
-	Lat       string `yaml:"lat" mapstructure:"lat" redact:"true"`
-	Lon       string `yaml:"lon" mapstructure:"lon" redact:"true"`
-	API       string `yaml:"api" mapstructure:"api" redact:"true"`
-	Unit      string `yaml:"unit" mapstructure:"unit" redact:"true"`
-	Lang      string `yaml:"lang" mapstructure:"lang" redact:"true"`
-	Forecast  bool   `yaml:"forecast" mapstructure:"forecast" default:"false"`
-	RoundTemp bool   `yaml:"round_temperature" mapstructure:"round_temperature" default:"false"`
-	Default   bool   `yaml:"default" mapstructure:"default"`
+	Name      string                     `yaml:"name" mapstructure:"name" redact:"true"`
+	Lat       string                     `yaml:"lat" mapstructure:"lat" redact:"true"`
+	Lon       string                     `yaml:"lon" mapstructure:"lon" redact:"true"`
+	API       string                     `yaml:"api" mapstructure:"api" redact:"true"`
+	Unit      string                     `yaml:"unit" mapstructure:"unit" redact:"true"`
+	Lang      string                     `yaml:"lang" mapstructure:"lang" redact:"true"`
+	Show      WeatherLocationStatOptions `yaml:"show" mapstructure:"show" default:""`
+	Forecast  bool                       `yaml:"forecast" mapstructure:"forecast" default:"false"`
+	RoundTemp bool                       `yaml:"round_temperature" mapstructure:"round_temperature" default:"false"`
+	Default   bool                       `yaml:"default" mapstructure:"default"`
 }
 
 type Webhook struct {
@@ -240,8 +247,8 @@ type Config struct {
 
 	// ImmichUsersAPIKeys a map of usernames to their respective api keys for accessing Immich
 	ImmichUsersAPIKeys map[string]string `json:"-" yaml:"immich_users_api_keys" mapstructure:"immich_users_api_keys" default:"{}" redact:"true"`
-	// User the user from ImmichUsersAPIKeys to use when fetching images. If not set, it will use the default ImmichAPIKey
-	User []string `json:"user" yaml:"user" mapstructure:"user" query:"user" form:"user" default:"[]" redact:"true"`
+	// URLParamUsers the user(s) submitted via URL query parameter
+	URLParamUsers []string `json:"user" yaml:"-" mapstructure:"-" query:"user" form:"user" default:"[]" redact:"true"`
 	// ReloadTimeStamp timestamp for when the last client reload was called for
 	ReloadTimeStamp string `json:"-" yaml:"-"`
 	// configHash stores the SHA-256 hash of the configuration file
@@ -269,6 +276,8 @@ type Config struct {
 	ShowTime bool `json:"showTime" yaml:"show_time" mapstructure:"show_time" query:"show_time" form:"show_time" default:"false"`
 	// TimeFormat whether to use 12 of 24 hour format for clock
 	TimeFormat string `json:"timeFormat" yaml:"time_format" mapstructure:"time_format" query:"time_format" form:"time_format" default:"24"`
+	// ShowAmPm whether to display am/pm when using 12 hour format
+	ShowAmPm bool `json:"showAmPm" yaml:"show_am_pm" mapstructure:"show_am_pm" query:"show_am_pm" form:"show_am_pm" default:"true"`
 	// ShowDate whether to display date
 	ShowDate bool `json:"showDate" yaml:"show_date" mapstructure:"show_date" query:"show_date" form:"show_date" default:"false"`
 	//  DateFormat format for date
@@ -325,6 +334,7 @@ type Config struct {
 
 	// Memories show memories
 	Memories       bool    `json:"memories" yaml:"memories" mapstructure:"memories" query:"memories" form:"memories" default:"false"`
+	MemoriesOnly   bool    `json:"-" yaml:"-" default:"false"`
 	PastMemoryDays int     `json:"pastMemoryDays" yaml:"past_memory_days" mapstructure:"past_memory_days" query:"past_memory_days" form:"past_memory_days" default:"0"`
 	MemoryWeight   float64 `json:"memoryWeight" yaml:"memory_weight" mapstructure:"memory_weight" default:"1.0"`
 
@@ -451,6 +461,9 @@ type Config struct {
 	LikeButtonAction []string `json:"likeButtonAction" yaml:"like_button_action" mapstructure:"like_button_action" query:"like_button_action" form:"like_button_action" default:"[favorite]"`
 	// HideButtonAction indicates the action to take when the hide button is clicked
 	HideButtonAction []string `json:"hideButtonAction" yaml:"hide_button_action" mapstructure:"hide_button_action" query:"hide_button_action" form:"hide_button_action" default:"[tag]"`
+
+	ButtonOpenInApp bool `json:"buttonOpenInApp" yaml:"button_open_in_app" mapstructure:"button_open_in_app" query:"button_open_in_app" form:"button_open_in_app" default:"false"`
+	QrCodeOpenInApp bool `json:"qrCodeOpenInApp" yaml:"qr_code_open_in_app" mapstructure:"qr_code_open_in_app" query:"qr_code_open_in_app" form:"qr_code_open_in_app" default:"true"`
 
 	Weather WeatherConfig `json:"weather" yaml:"weather" mapstructure:"weather"`
 

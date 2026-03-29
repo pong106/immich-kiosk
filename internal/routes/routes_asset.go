@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 	"github.com/labstack/echo/v5"
 
 	"github.com/damongolding/immich-kiosk/internal/common"
@@ -153,7 +153,7 @@ func Image(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
 			return err
 		}
 
-		return c.Blob(http.StatusOK, "image/jpeg", imgBytes)
+		return c.Blob(http.StatusOK, kiosk.MimeTypeJpeg, imgBytes)
 	}
 }
 

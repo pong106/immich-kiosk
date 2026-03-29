@@ -7,6 +7,7 @@ immich_url: ""
 ## Clock
 show_time: false
 time_format: 24 # 12 or 24
+show_am_pm: true # show am/pm when using 12 hour format
 show_date: false
 date_format: YYYY/MM/DD
 clock_source: client
@@ -48,6 +49,9 @@ tags:
   - "TAG_VALUE"
 excluded_tags:
   - "TAG_VALUE"
+
+# Include assets based on their rating
+rating: -1 # 0 - 5 (-1 = disabled)
 
 excluded_partners:
   - "PARTNER_ID"
@@ -93,6 +97,7 @@ live_photos: false
 live_photo_loop_delay: 0
 
 ## Image METADATA
+show_image_rating: false
 show_owner: false # show the owner of the image
 show_album_name: false
 show_person_name: false

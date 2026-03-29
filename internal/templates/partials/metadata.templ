@@ -133,6 +133,11 @@ func AssetLocation(info immich.ExifInfo, l config.ImageLocation, hideCountries [
 	return strings.Join(parts, ", ")
 }
 
+func trimFloatToString(f float64) string {
+	s := fmt.Sprintf("%.2f", f)
+	return strings.TrimRight(strings.TrimRight(s, "0"), ".")
+}
+
 //AssetMake
 func AssetMake(info immich.ExifInfo) string{
     var parts strings.Builder

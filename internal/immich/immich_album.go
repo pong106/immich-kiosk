@@ -10,7 +10,7 @@ import (
 	"path"
 	"slices"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 
 	"github.com/damongolding/immich-kiosk/internal/cache"
 	"github.com/damongolding/immich-kiosk/internal/kiosk"
@@ -243,8 +243,6 @@ func (a *Asset) AlbumImageCount(albumID string, requestID, deviceID string) (int
 //   - error: Any error encountered during the asset retrieval process, including when No viable assets are found
 //     after maximum retry attempts
 func (a *Asset) AssetFromAlbum(albumID string, albumAssetsOrder AssetOrder, requestID, deviceID string) error {
-
-	log.Debug(requestID + " AssetFromAlbum()")
 
 	for range MaxRetries {
 
