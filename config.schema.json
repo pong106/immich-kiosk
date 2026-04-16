@@ -29,6 +29,11 @@
       ],
       "examples": ["12", "24"]
     },
+    "show_seconds": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show seconds when displaying clock"
+    },
     "show_am_pm": {
       "type": "boolean"
     },
@@ -163,6 +168,11 @@
     },
     "live_photo_loop_delay": {
       "type": "integer"
+    },
+    "show_animated_gifs": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show animated GIFs"
     },
     "menu_position": {
       "type": "string"
@@ -438,6 +448,11 @@
                   "visibility": {
                     "type": "boolean",
                     "description": "Show the current visibility",
+                    "default": false
+                  },
+                  "temperature_range": {
+                    "type": "boolean",
+                    "description": "Show the next 24-hour forecast high/low temperature (requires forecast: true)",
                     "default": false
                   }
                 }
