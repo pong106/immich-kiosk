@@ -337,12 +337,14 @@ type Config struct {
 
 	// Memories show memories
 	Memories       bool    `json:"memories" yaml:"memories" mapstructure:"memories" query:"memories" form:"memories" default:"false"`
-	MemoriesOnly   bool    `json:"-" yaml:"-" default:"false"`
+	MemoriesOnly   bool    `json:"memoriesOnly" yaml:"memories_only" mapstructure:"memories_only" query:"memories_only" form:"memories_only" default:"false"`
 	PastMemoryDays int     `json:"pastMemoryDays" yaml:"past_memory_days" mapstructure:"past_memory_days" query:"past_memory_days" form:"past_memory_days" default:"0"`
 	MemoryWeight   float64 `json:"memoryWeight" yaml:"memory_weight" mapstructure:"memory_weight" default:"1.0"`
 
-	// DateFilter filter certain asset bucket assets by date
-	DateFilter string `json:"dateFilter" yaml:"date_filter" mapstructure:"date_filter" query:"date_filter" form:"date_filter" default:""`
+	// FilterDate filter certain asset bucket assets by date range
+	FilterDate string `json:"filterDate" yaml:"filter_date" mapstructure:"filter_date" query:"filter_date" form:"filter_date" default:""`
+	// FilterNewest filter certain asset bucket assets by the newest X assets
+	FilterNewest int `json:"filterNewest" yaml:"filter_newest" mapstructure:"filter_newest" query:"filter_newest" form:"filter_newest" default:"0"`
 
 	// ShowClearCacheButton display a button to clear cache
 	ShowClearCacheButton bool `json:"showClearCacheButton" yaml:"show_clear_cache_button" mapstructure:"show_clear_cache_button" query:"show_clear_cache_button" form:"show_clear_cache_button" default:"false"`
@@ -646,6 +648,7 @@ func (c *Config) Load() error {
 	c.checkRedirects()
 	c.checkOffline()
 	c.checkBurnIn()
+	c.checkFilterNewest()
 
 	return nil
 }
@@ -706,6 +709,7 @@ func (c *Config) ConfigWithOverrides(queries url.Values, e *echo.Context) error 
 		return err
 	}
 
+	c.checkFilterNewest()
 	c.checkExcludedAlbums()
 
 	// Disabled features in demo mode

@@ -144,6 +144,11 @@
     "memories": {
       "type": "boolean"
     },
+    "memories_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "!memories has to be set to true if you wish to use this feature! Only display memories when memories is set to true and no other sources (people, albums, tags etc) are set."
+    },
     "past_memory_days": {
       "type": "integer",
       "minimum": 0,
@@ -152,8 +157,15 @@
     "memory_weight": {
       "type": "number"
     },
-    "date_filter": {
-      "type": "string"
+    "filter_date": {
+      "type": "string",
+      "description": "Filter to limit assets to a certain date range"
+    },
+    "filter_newest": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000,
+      "description": "Filter to limit assets to the newest X"
     },
     "show_videos": {
       "type": "boolean"
