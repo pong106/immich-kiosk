@@ -1,4 +1,4 @@
-VERSION_PONG=0.36.0.1
+VERSION_PONG=0.39.1.1
 
 default:
 	task
