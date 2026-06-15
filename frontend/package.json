@@ -37,6 +37,6 @@
     "safari >= 16.1"
   ],
   "allowScripts": {
-    "esbuild@0.28.0": true
+    "esbuild@0.28.1": true
   }
 }

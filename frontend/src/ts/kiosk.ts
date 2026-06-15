@@ -395,8 +395,8 @@ function addEventListeners(): void {
         const e = event as HTMXEvent;
         const path = e.detail?.pathInfo?.requestPath || "";
 
-        // Only restart polling for asset endpoints
-        if (path.startsWith("/asset/")) {
+        // Only restart polling for asset endpoints (new|offlie|previous)
+        if (/^\/asset\/(new|offline|previous)$/.test(path)) {
             startPolling();
         }
     });
@@ -537,8 +537,8 @@ async function cleanupFrames(): Promise<void> {
 function setRequestLock(e: HTMXEvent): void {
     const path = e.detail?.pathInfo?.requestPath || "";
 
-    // Do not lock for non-asset requests (e.g. GIFS, live photos)
-    if (!path.startsWith("/asset/")) {
+    // Do not lock for non-asset requests (new|offline|previous)
+    if (!/^\/asset\/(new|offline|previous)$/.test(path)) {
         return;
     }
 
