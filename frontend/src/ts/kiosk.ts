@@ -396,7 +396,7 @@ function addEventListeners(): void {
         const path = e.detail?.pathInfo?.requestPath || "";
 
         // Only restart polling for asset endpoints (new|offlie|previous)
-        if (!/^\/asset\/(new|offline|previous)$/.test(path)) {
+        if (/^\/asset\/(new|offline|previous)$/.test(path)) {
             startPolling();
         }
     });
