@@ -172,7 +172,6 @@ type Asset struct {
 	ID               string    `json:"id"`
 	OwnerID          string    `json:"ownerId"`
 	LibraryID        string    `json:"-"` // `json:"libraryId"`
-	LibraryID        string    `json:"-"` // `json:"libraryId"`
 	Type             AssetType `json:"type"`
 	OriginalPath     string    `json:"-"` // `json:"originalPath"`
 	OriginalFileName string    `json:"originalFileName"`
