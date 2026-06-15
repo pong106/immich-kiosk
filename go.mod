@@ -3,7 +3,7 @@ module github.com/damongolding/immich-kiosk
 go 1.26.4
 
 require (
-	charm.land/lipgloss/v2 v2.0.3
+	charm.land/lipgloss/v2 v2.0.4
 	charm.land/log/v2 v2.0.0
 	github.com/EdlinOrg/prominentcolor v1.0.0
 	github.com/a-h/templ v0.3.1020
@@ -14,7 +14,7 @@ require (
 	github.com/google/go-querystring v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/klauspost/compress v1.18.6
-	github.com/labstack/echo/v5 v5.1.1
+	github.com/labstack/echo/v5 v5.2.0
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/oapi-codegen/runtime v1.4.1
@@ -26,9 +26,9 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.yaml.in/yaml/v3 v3.0.4
-	golang.org/x/image v0.41.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/text v0.37.0
+	golang.org/x/image v0.42.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/text v0.38.0
 	golang.org/x/time v0.15.0
 )
 
@@ -95,10 +95,10 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/exp v0.0.0-20251113190631-e25ba8c21ef6 // indirect
-	golang.org/x/mod v0.35.0 // indirect
-	golang.org/x/net v0.53.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/tools v0.44.0 // indirect
+	golang.org/x/mod v0.36.0 // indirect
+	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/tools v0.45.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
