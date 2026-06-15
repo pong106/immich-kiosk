@@ -38,7 +38,11 @@ function unmute() {
  * Sets the global mute state and returns the resulting state.
  */
 function setMuteState(muted: boolean): boolean {
-    muted ? mute() : unmute();
+    if (muted === true) {
+        mute();
+    } else {
+        unmute();
+    }
     return getMuteState();
 }
 
