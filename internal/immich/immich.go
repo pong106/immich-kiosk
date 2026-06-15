@@ -143,7 +143,7 @@ type Tag struct {
 	Value     string    `json:"value"` // e.g "parent/child"
 	CreatedAt time.Time `json:"-"`     // `json:"createdAt"`
 	UpdatedAt time.Time `json:"-"`     // `json:"updatedAt"`
-	Color     string    `json:"color"`
+	Color     string    `json:"color,omitempty"`
 }
 
 type Face struct {
