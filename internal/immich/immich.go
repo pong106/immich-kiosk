@@ -82,8 +82,8 @@ type Error struct {
 }
 
 type ErrorResponse struct {
-	Message    string  `json:"message"`
-	Errors     []Error `json:"errors"`
+	Message string  `json:"message"`
+	Errors  []Error `json:"errors"`
 }
 
 type Owner struct {
@@ -113,7 +113,7 @@ type ExifInfo struct {
 	ModifyDate       time.Time `json:"modifyDate"`
 	Orientation      string    `json:"orientation"`
 	ProjectionType   any       `json:"-"` // `json:"projectionType"`
-	Rating           float32   `json:"rating"`
+	Rating           int       `json:"rating"`
 	State            string    `json:"state"`
 	TimeZone         string    `json:"timeZone"`
 }

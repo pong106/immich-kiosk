@@ -29,14 +29,14 @@ import (
 // immichAPIFail handles failures in Immich API calls by unmarshaling the error response,
 // logging the error, and returning a formatted error along with the original value.
 func immichAPIFail[T APIResponse](value T, err error, body []byte, apiURL string) (T, string, error) {
-	var immichError Error
+	var immichError ErrorResponse
 	errorUnmarshalErr := json.Unmarshal(body, &immichError)
 	if errorUnmarshalErr != nil {
 		log.Error("Couldn't read error", "body", string(body), "url", apiURL)
 		return value, apiURL, err
 	}
-	log.Errorf("%s : %v", immichError.Error, immichError.Message)
-	return value, apiURL, fmt.Errorf("%s : %v", immichError.Error, immichError.Message)
+	log.Errorf("%s : %v", immichError.Message, immichError.Errors)
+	return value, apiURL, fmt.Errorf("%s : %v", immichError.Message, immichError.Errors)
 }
 
 // withImmichAPICache wraps an Immich API call with caching logic, returning cached responses when available.
