@@ -170,9 +170,8 @@ type Asset struct {
 	mu               *sync.Mutex
 	Owner            Owner     `json:"owner"`
 	ID               string    `json:"id"`
-	DeviceAssetID    string    `json:"-"` // `json:"deviceAssetId"`
 	OwnerID          string    `json:"ownerId"`
-	DeviceID         string    `json:"-"` // `json:"deviceId"`
+	LibraryID        string    `json:"-"` // `json:"libraryId"`
 	LibraryID        string    `json:"-"` // `json:"libraryId"`
 	Type             AssetType `json:"type"`
 	OriginalPath     string    `json:"-"` // `json:"originalPath"`
@@ -180,7 +179,7 @@ type Asset struct {
 	OriginalMimeType string    `json:"originalMimeType"`
 	ServedMimeType   string    `json:"servedMimeType"` // mime type served from the Immich server
 	Thumbhash        string    `json:"-"`              // `json:"thumbhash"`
-	Duration         string    `json:"duration"`
+	Duration         float64   `json:"duration"`
 	LivePhotoVideoID string    `json:"livePhotoVideoId"`
 	Checksum         string    `json:"checksum"`
 	Visibility       string    `json:"-"` // `json:"visibility"`
