@@ -77,9 +77,13 @@ type PersonStatistics struct {
 }
 
 type Error struct {
-	Error      string   `json:"error"`
-	Message    []string `json:"message"`
-	StatusCode int      `json:"statusCode"`
+	Path    []string `json:"path"`
+	Message string   `json:"message"`
+}
+
+type ErrorResponse struct {
+	Message    string  `json:"message"`
+	Errors     []Error `json:"errors"`
 }
 
 type Owner struct {
