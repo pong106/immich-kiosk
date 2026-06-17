@@ -251,7 +251,7 @@ func (a *Asset) fetchAssets(requestID, deviceID string, requestBody SearchRandom
 
 	apiPath := "api/search/random"
 	if filterNewest {
-		apiPath = "api/search/metadata"
+		apiPath = MetadataEndpoint
 	}
 
 	apiURL := url.URL{
@@ -686,20 +686,16 @@ func (a *Asset) hasValidBasicProperties(allowedTypes []AssetType, wantedRatio Im
 	return true
 }
 
+// isAnimatedGif checks if the asset is an animated GIF.
+// Has been substantially simplified from the original implementation but to Immich V3.
+//
+// Returns:
+//   - bool: true if the asset is an animated GIF, false otherwise
 func (a *Asset) isAnimatedGif() bool {
-	if a.OriginalMimeType != kiosk.MimeTypeGif {
+	if a.OriginalMimeType != kiosk.MimeTypeGif || a.Duration <= 0 {
 		return false
 	}
-
-	var hours, minutes int
-	var seconds float64
-	if _, err := fmt.Sscanf(a.Duration, "%d:%d:%f", &hours, &minutes, &seconds); err != nil {
-		log.Error("could not parse duration for animated gif", "err", err)
-		return false
-	}
-
-	totalSeconds := float64(hours*3600+minutes*60) + seconds
-	return totalSeconds > 0
+	return true
 }
 
 // hasValidFilterDate validates if the asset's date matches the configured date filter criteria.
@@ -851,8 +847,13 @@ func (a *Asset) hasValidTags(requestID, deviceID string) bool {
 	})
 }
 
-func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (int, error) {
-	var totalCount int
+type PaginatedMetadataResponse struct {
+	Assets []Asset `json:"assets"`
+	URL    string  `json:"url"`
+}
+
+func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (PaginatedMetadataResponse, error) {
+	res := PaginatedMetadataResponse{}
 
 	for {
 
@@ -869,30 +870,30 @@ func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody,
 		apiURL := url.URL{
 			Scheme:   u.Scheme,
 			Host:     u.Host,
-			Path:     "api/search/metadata",
+			Path:     MetadataEndpoint,
 			RawQuery: queries.Encode(),
 		}
 
 		jsonBody, err := json.Marshal(requestBody)
 		if err != nil {
-			_, _, err = immichAPIFail(totalCount, err, nil, apiURL.String())
-			return totalCount, err
+			_, _, err = immichAPIFail(res.Assets, err, nil, apiURL.String())
+			return res, err
 		}
 
 		immichAPICall := withImmichAPICache(a.immichAPICall, requestID, deviceID, a.requestConfig, response)
 		apiBody, _, _, err := immichAPICall(a.ctx, http.MethodPost, apiURL.String(), jsonBody)
 		if err != nil {
 			_, _, err = immichAPIFail(response, err, apiBody, apiURL.String())
-			return totalCount, err
+			return res, err
 		}
 
 		err = json.Unmarshal(apiBody, &response)
 		if err != nil {
 			_, _, err = immichAPIFail(response, err, apiBody, apiURL.String())
-			return totalCount, err
+			return res, err
 		}
 
-		totalCount += response.Assets.Total
+		res.Assets = append(res.Assets, response.Assets.Items...)
 
 		if response.Assets.NextPage == "" {
 			break
@@ -901,7 +902,53 @@ func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody,
 		requestBody.Page++
 	}
 
-	return totalCount, nil
+	return res, nil
+}
+
+func (a *Asset) fetchPaginatedMetadataWithCache(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (PaginatedMetadataResponse, error) {
+	requestBody.PaginationComplete = true
+
+	queries, _ := query.Values(requestBody)
+
+	pcURL := url.URL{
+		Scheme:   u.Scheme,
+		Host:     u.Host,
+		Path:     MetadataEndpoint,
+		RawQuery: queries.Encode(),
+	}
+
+	cacheKey := cache.APICacheKey(pcURL.String(), deviceID, a.requestConfig.SelectedUser)
+
+	data, cacheHit := cache.Get(cacheKey)
+	if cacheHit {
+		log.Info(requestID+" cache hit  fetchPaginatedMetadataWithCache", "cacheKey", cacheKey)
+		var res PaginatedMetadataResponse
+		if err := json.Unmarshal(data.([]byte), &res); err != nil {
+			return PaginatedMetadataResponse{}, err
+		}
+		return res, nil
+	}
+
+	log.Info(requestID+" cache miss fetchPaginatedMetadataWithCache", "cacheKey", cacheKey)
+
+	requestBody.PaginationComplete = false
+
+	res, err := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	if err != nil {
+		return res, err
+	}
+
+	res.URL = pcURL.String()
+
+	jsonBytes, marshalErr := json.Marshal(res)
+	if marshalErr != nil {
+		log.Error("Failed to marshal assetsToCache", "error", marshalErr)
+		return res, marshalErr
+	}
+
+	cache.Set(cacheKey, jsonBytes, a.requestConfig.Duration, a.requestConfig.CacheDuration)
+
+	return res, nil
 }
 
 func (a *Asset) updateAsset(deviceID string, requestBody UpdateAssetBody) error {

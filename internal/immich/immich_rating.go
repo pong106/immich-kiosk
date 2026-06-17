@@ -42,12 +42,12 @@ func (a *Asset) AssetsWithRatingCount(rating float32, requestID, deviceID string
 	filterDate(&requestBody, a.requestConfig.FilterDate)
 	filterFavorites(&requestBody, a.requestConfig.FilterFavorites)
 
-	allAssetsCount, assetsErr := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	res, assetsErr := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
 	if assetsErr != nil {
 		return totalAssetsCount, assetsErr
 	}
 
-	totalAssetsCount += allAssetsCount
+	totalAssetsCount += len(res.Assets)
 
 	return totalAssetsCount, nil
 }

@@ -59,7 +59,7 @@ func (a *Asset) albums(requestID, deviceID string, shared bool, contains string,
 	queryParams := url.Values{}
 
 	if shared {
-		queryParams.Set("shared", "true")
+		queryParams.Set("isShared", "true")
 	}
 
 	if contains != "" {
@@ -136,7 +136,7 @@ func (a *Asset) allOwnedAlbums(requestID, deviceID string) (Albums, string, erro
 //   - ImmichAlbum: The album details and associated assets
 //   - string: The API URL that was called
 //   - error: Any error encountered during the request
-func (a *Asset) albumAssets(albumID, requestID, deviceID string, favoritesOnly bool) (Album, string, error) {
+func (a *Asset) albumAssetsV2(albumID, requestID, deviceID string, favoritesOnly bool) (Album, string, error) {
 	var album Album
 
 	u, err := url.Parse(a.requestConfig.ImmichURL)
@@ -170,6 +170,47 @@ func (a *Asset) albumAssets(albumID, requestID, deviceID string, favoritesOnly b
 	}
 
 	return album, apiURL.String(), nil
+}
+
+func (a *Asset) albumAssets(albumID, requestID, deviceID string, favoritesOnly bool) (Album, string, error) {
+	var album Album
+
+	u, err := url.Parse(a.requestConfig.ImmichURL)
+	if err != nil {
+		return immichAPIFail(album, err, nil, "")
+	}
+
+	requestBody := SearchRandomBody{
+		Type:         string(ImageType),
+		AlbumIDs:     []string{albumID},
+		WithPeople:   true,
+		WithExif:     true,
+		IsFavorite:   favoritesOnly,
+		WithArchived: a.requestConfig.ShowArchived,
+		Size:         a.requestConfig.Kiosk.FetchedAssetsSize,
+	}
+
+	// Include videos if show videos is enabled
+	if a.requestConfig.ShowVideos {
+		requestBody.Type = ""
+	}
+
+	filterDate(&requestBody, a.requestConfig.FilterDate)
+
+	var res PaginatedMetadataResponse
+
+	if a.requestConfig.Kiosk.Cache {
+		res, err = a.fetchPaginatedMetadataWithCache(u, requestBody, requestID, deviceID)
+	} else {
+		res, err = a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	}
+	if err != nil {
+		return album, res.URL, err
+	}
+
+	album.Assets = res.Assets
+
+	return album, res.URL, nil
 }
 
 // countAssetsInAlbums calculates the total number of assets across multiple albums.
@@ -226,11 +267,12 @@ func (a *Asset) AlbumImageCount(albumID string, requestID, deviceID string) (int
 		return favouriteAssetCount, nil
 
 	default:
-		album, _, err := a.albumAssets(albumID, requestID, deviceID, false)
+		album, _, err := a.albumAssets(albumID, requestID, deviceID, a.requestConfig.FilterFavorites)
 		if err != nil {
 			return 0, fmt.Errorf("get album assets for album %s: %w", albumID, err)
 		}
-		return album.AssetCount, nil
+		log.Info(requestID+" AlbumImageCount", "albumID", albumID, "assetCount", len(album.Assets))
+		return len(album.Assets), nil
 	}
 }
 
@@ -311,13 +353,18 @@ func (a *Asset) AssetFromAlbum(albumID string, albumAssetsOrder AssetOrder, requ
 
 			if a.requestConfig.Kiosk.Cache {
 				// Remove the current image from the slice
-				assetsToCache := album
+				assetsToCache := PaginatedMetadataResponse{
+					URL: apiURL,
+				}
+				assetsToCache.Assets = album.Assets
 				assetsToCache.Assets = slices.Delete(album.Assets, assetIndex, assetIndex+1)
 				jsonBytes, marshalErr := json.Marshal(assetsToCache)
 				if marshalErr != nil {
 					log.Error("Failed to marshal assetsToCache", "error", marshalErr)
 					return marshalErr
 				}
+
+				log.Info("saving in to cache", "cacheKey", apiCacheKey)
 
 				// replace with cache minus used asset
 				cache.Set(apiCacheKey, jsonBytes, a.requestConfig.Duration, a.requestConfig.CacheDuration)
@@ -333,7 +380,7 @@ func (a *Asset) AssetFromAlbum(albumID string, albumAssetsOrder AssetOrder, requ
 			return nil
 		}
 
-		log.Debug(requestID + " No viable assets left in cache. Refreshing and trying again")
+		log.Debug(requestID+" No viable assets left in cache. Refreshing and trying again", "cacheKey", apiCacheKey)
 		cache.Delete(apiCacheKey)
 	}
 
