@@ -126,52 +126,6 @@ func (a *Asset) allOwnedAlbums(requestID, deviceID string) (Albums, string, erro
 	return a.albums(requestID, deviceID, false, "", false)
 }
 
-// albumAssets retrieves details and assets for a specific album from Immich.
-// Parameters:
-//   - albumID: The ID of the album to fetch
-//   - requestID: ID used for tracking API call
-//   - deviceID: ID of the device making the request
-//
-// Returns:
-//   - ImmichAlbum: The album details and associated assets
-//   - string: The API URL that was called
-//   - error: Any error encountered during the request
-func (a *Asset) albumAssetsV2(albumID, requestID, deviceID string, favoritesOnly bool) (Album, string, error) {
-	var album Album
-
-	u, err := url.Parse(a.requestConfig.ImmichURL)
-	if err != nil {
-		return immichAPIFail(album, err, nil, "")
-	}
-
-	apiURL := url.URL{
-		Scheme: u.Scheme,
-		Host:   u.Host,
-		Path:   path.Join("api", "albums", albumID),
-	}
-
-	if favoritesOnly {
-		apiURL.RawQuery = "favorites=true"
-	}
-
-	immichAPICall := withImmichAPICache(a.immichAPICall, requestID, deviceID, a.requestConfig, album)
-	body, _, _, err := immichAPICall(a.ctx, http.MethodGet, apiURL.String(), nil)
-	if err != nil {
-		return immichAPIFail(album, err, body, apiURL.String())
-	}
-
-	err = json.Unmarshal(body, &album)
-	if err != nil {
-		return immichAPIFail(album, err, body, apiURL.String())
-	}
-
-	if favoritesOnly {
-		album = extractFavoritedAssets(album)
-	}
-
-	return album, apiURL.String(), nil
-}
-
 func (a *Asset) albumAssets(albumID, requestID, deviceID string, favoritesOnly bool) (Album, string, error) {
 	var album Album
 
@@ -352,19 +306,19 @@ func (a *Asset) AssetFromAlbum(albumID string, albumAssetsOrder AssetOrder, requ
 			}
 
 			if a.requestConfig.Kiosk.Cache {
-				// Remove the current image from the slice
+				// from Immich V3 album assets use the PaginatedMetadataResponse type
 				assetsToCache := PaginatedMetadataResponse{
 					URL: apiURL,
 				}
-				assetsToCache.Assets = album.Assets
+
+				// Remove the current image from the slice
 				assetsToCache.Assets = slices.Delete(album.Assets, assetIndex, assetIndex+1)
+
 				jsonBytes, marshalErr := json.Marshal(assetsToCache)
 				if marshalErr != nil {
 					log.Error("Failed to marshal assetsToCache", "error", marshalErr)
 					return marshalErr
 				}
-
-				log.Info("saving in to cache", "cacheKey", apiCacheKey)
 
 				// replace with cache minus used asset
 				cache.Set(apiCacheKey, jsonBytes, a.requestConfig.Duration, a.requestConfig.CacheDuration)
@@ -469,22 +423,6 @@ func (a *Albums) RemoveExcludedAlbums(exclude []string) {
 	})
 
 	*a = withRemoved
-}
-
-func extractFavoritedAssets(album Album) Album {
-	favoritedAssets := make([]Asset, 0, len(album.Assets))
-	for _, asset := range album.Assets {
-		if asset.IsFavorite {
-			favoritedAssets = append(favoritedAssets, asset)
-		}
-	}
-	return Album{
-		ID:            album.ID,
-		AlbumName:     album.AlbumName,
-		Assets:        favoritedAssets,
-		AssetCount:    len(favoritedAssets),
-		AssetsOrdered: album.AssetsOrdered,
-	}
 }
 
 // kioskLikedAlbum looks for and returns the kiosk "liked" album from all available albums.

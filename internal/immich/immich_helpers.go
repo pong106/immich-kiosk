@@ -847,6 +847,8 @@ func (a *Asset) hasValidTags(requestID, deviceID string) bool {
 	})
 }
 
+// PaginatedMetadataResponse
+// Holds the response from a paginated (all pages combined) metadata request, including the assets and the URL of the request.
 type PaginatedMetadataResponse struct {
 	Assets []Asset `json:"assets"`
 	URL    string  `json:"url"`
@@ -905,46 +907,69 @@ func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody,
 	return res, nil
 }
 
-func (a *Asset) fetchPaginatedMetadataWithCache(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (PaginatedMetadataResponse, error) {
+// paginatedCache attempts to retrieve a PaginatedMetadataResponse from the cache.
+// It temporarily sets PaginationComplete to true on the request body to generate
+// the correct cache key URL, then restores it to false before returning.
+// Returns the cached response, the API URL string, and a boolean indicating a cache hit.
+func paginatedCache(u *url.URL, requestBody *SearchRandomBody, deviceID, selectedUser string) (PaginatedMetadataResponse, string, bool) {
 	requestBody.PaginationComplete = true
 
 	queries, _ := query.Values(requestBody)
 
-	pcURL := url.URL{
+	apiURL := url.URL{
 		Scheme:   u.Scheme,
 		Host:     u.Host,
 		Path:     MetadataEndpoint,
 		RawQuery: queries.Encode(),
 	}
 
-	cacheKey := cache.APICacheKey(pcURL.String(), deviceID, a.requestConfig.SelectedUser)
+	cacheKey := cache.APICacheKey(apiURL.String(), deviceID, selectedUser)
 
 	data, cacheHit := cache.Get(cacheKey)
 	if cacheHit {
-		log.Info(requestID+" cache hit  fetchPaginatedMetadataWithCache", "cacheKey", cacheKey)
-		var res PaginatedMetadataResponse
-		if err := json.Unmarshal(data.([]byte), &res); err != nil {
-			return PaginatedMetadataResponse{}, err
+		bytesData, ok := data.([]byte)
+		if !ok {
+			log.Error("Cache data is not a byte slice", "cacheKey", cacheKey)
+			return PaginatedMetadataResponse{}, apiURL.String(), false
 		}
-		return res, nil
+		var res PaginatedMetadataResponse
+		if err := json.Unmarshal(bytesData, &res); err != nil {
+			log.Error("Failed to unmarshal cache data", "error", err)
+			return PaginatedMetadataResponse{}, apiURL.String(), false
+		}
+		if len(res.Assets) != 0 {
+			return res, apiURL.String(), true
+		}
 	}
 
-	log.Info(requestID+" cache miss fetchPaginatedMetadataWithCache", "cacheKey", cacheKey)
-
 	requestBody.PaginationComplete = false
+
+	return PaginatedMetadataResponse{}, apiURL.String(), false
+}
+
+// fetchPaginatedMetadataWithCache fetches paginated asset metadata, using the cache
+// where possible. On a cache miss it calls fetchPaginatedMetadata, serialises the
+// result to JSON, and stores it in the cache for subsequent requests.
+func (a *Asset) fetchPaginatedMetadataWithCache(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (PaginatedMetadataResponse, error) {
+	cacheData, apiURL, cacheHit := paginatedCache(u, &requestBody, deviceID, a.requestConfig.SelectedUser)
+	if cacheHit {
+		return cacheData, nil
+	}
 
 	res, err := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
 	if err != nil {
 		return res, err
 	}
 
-	res.URL = pcURL.String()
+	res.URL = apiURL
 
 	jsonBytes, marshalErr := json.Marshal(res)
 	if marshalErr != nil {
 		log.Error("Failed to marshal assetsToCache", "error", marshalErr)
 		return res, marshalErr
 	}
+
+	cacheKey := cache.APICacheKey(apiURL, deviceID, a.requestConfig.SelectedUser)
 
 	cache.Set(cacheKey, jsonBytes, a.requestConfig.Duration, a.requestConfig.CacheDuration)
 
