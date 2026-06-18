@@ -101,7 +101,6 @@ kiosk:
 
 ```
 
-
 | **yaml**            | **ENV**                 | **Value**    | **Default** | **Description**                                                                            |
 |---------------------|-------------------------|--------------|-------------|--------------------------------------------------------------------------------------------|
 | config_validation_level | KIOSK_CONFIG_VALIDATION_LEVEL      | error \| warning \| off | error | The level of validation to perform on the config.yaml file. |
