@@ -45,10 +45,8 @@ func (a *Asset) durationCheck() bool {
 		return false
 	}
 
-	totalSeconds := int(a.Duration / 1000)
-
 	// Check maximum duration if configured
-	if a.requestConfig.ExcludeVideosOver > 0 && totalSeconds > a.requestConfig.ExcludeVideosOver {
+	if a.requestConfig.ExcludeVideosOver > 0 && a.Duration > int64(a.requestConfig.ExcludeVideosOver)*1000 {
 		return false
 	}
 
