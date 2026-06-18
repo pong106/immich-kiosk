@@ -162,7 +162,7 @@ type Face struct {
 type Asset struct {
 	Checksum         string    `json:"checksum"`
 	DuplicateID      any       `json:"-"`        // `json:"duplicateId"`
-	Duration         int64     `json:"duration"` // miliseconds
+	Duration         int64     `json:"duration"` // milliseconds
 	ExifInfo         ExifInfo  `json:"exifInfo"`
 	FileCreatedAt    time.Time `json:"-"` // `json:"fileCreatedAt"`
 	FileModifiedAt   time.Time `json:"-"` // `json:"fileModifiedAt"`
