@@ -14,9 +14,9 @@ import (
 
 	"charm.land/log/v2"
 	"github.com/damongolding/immich-kiosk/internal/cache"
+	"github.com/damongolding/immich-kiosk/internal/i18n"
 	"github.com/damongolding/immich-kiosk/internal/immich_open_api"
 	"github.com/damongolding/immich-kiosk/internal/kiosk"
-	"github.com/dustin/go-humanize"
 )
 
 const MaxPastMemoryDays = 365
@@ -254,6 +254,18 @@ func updateMemoryCache(memories MemoriesResponse, pickedMemoryIndex, assetIndex 
 	return nil
 }
 
+func yearsAgo(t time.Time) int {
+	now := time.Now()
+	years := now.Year() - t.Year()
+
+	// Adjust if the date hasn't occurred yet this year
+	if now.Month() < t.Month() || (now.Month() == t.Month() && now.Day() < t.Day()) {
+		years--
+	}
+
+	return years
+}
+
 // RandomMemoryAsset retrieves a random image from memory assets.
 //
 // Parameters:
@@ -322,7 +334,15 @@ func (a *Asset) RandomMemoryAsset(requestID, deviceID string) error {
 			}
 
 			if memories[pickedMemoryIndex].Type == immich_open_api.OnThisDay {
-				asset.MemoryTitle = humanize.Time(memories[pickedMemoryIndex].Assets[assetIndex].LocalDateTime)
+				y := yearsAgo(memories[pickedMemoryIndex].Assets[assetIndex].LocalDateTime)
+				if y > 0 {
+					t := i18n.T()
+					if y == 1 {
+						asset.MemoryTitle = t("year_ago")
+					} else {
+						asset.MemoryTitle = fmt.Sprintf(t("years_ago"), y)
+					}
+				}
 			}
 
 			asset.BucketID = string(kiosk.SourceMemories)
