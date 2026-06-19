@@ -51,3 +51,5 @@ unknown_stats = "Unknown stats"
 unlike_asset = "Unlike asset"
 url_builder = "URL Builder"
 view_configuration = "View Configuration"
+year_ago = "1 year ago"
+years_ago = "%d years ago" # %d = number of years
