@@ -51,5 +51,5 @@ unknown_stats = "Unbekannte Statistiken"
 unlike_asset = "Medienobjekt nicht mehr mögen"
 url_builder = "URL-Generator"
 view_configuration = "Konfiguration anzeigen"
-year_ago = ""
-years_ago = ""
+year_ago = "Vor 1 Jahr"
+years_ago = "Vor %d Jahren" # %d = number of years
