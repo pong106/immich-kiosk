@@ -21,6 +21,7 @@ tasks:
     deps: [build]
     cmds:
       - ./dist/kiosk
+
   dev:
     desc: Run kiosk in development mode
     cmds:
