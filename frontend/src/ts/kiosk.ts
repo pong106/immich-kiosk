@@ -17,6 +17,7 @@ import {
     toggleAssetOverlay,
     toggleRedirectsOverlay,
 } from "./menu";
+import { initRatingStars } from "./more-info";
 import { registerVideoMuteApi, toggleMute } from "./mute";
 import {
     initPolling,
@@ -676,6 +677,7 @@ export {
     checkHistoryExists,
     cleanupFrames,
     clientData,
+    initRatingStars,
     releaseRequestLock,
     setRequestLock,
     sleepMode,

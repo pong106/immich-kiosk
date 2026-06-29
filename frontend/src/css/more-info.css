@@ -621,3 +621,44 @@
         transform: scale(3.0024344312452595);
     }
 }
+
+.asset--metadata--rating-stars svg {
+    display: none;
+
+    &.is-filled,
+    &.is-empty {
+        display: inline-block;
+    }
+}
+
+.more-info--rating {
+    .asset--metadata--rating-stars svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        cursor: pointer;
+    }
+
+    .is-hovering {
+        svg.star-filled,
+        svg.is-filled {
+            display: none;
+        }
+
+        svg.star-empty,
+        svg.is-empty {
+            display: inline-block;
+        }
+
+        .is-hover-filled {
+            svg.star-filled,
+            svg.is-filled {
+                display: inline-block;
+            }
+
+            svg.star-empty,
+            svg.is-empty {
+                display: none;
+            }
+        }
+    }
+}
