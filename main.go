@@ -191,6 +191,9 @@ func main() {
 
 	e.POST("/asset/tag", routes.TagAsset(baseConfig, c))
 
+	e.POST("/asset/rating", routes.RatingAsset(baseConfig, c))
+	e.POST("/asset/rating/clear", routes.ClearRatingAsset(baseConfig, c))
+
 	e.POST("/asset/like", routes.LikeAsset(baseConfig, c, true))
 	e.POST("/asset/unlike", routes.LikeAsset(baseConfig, c, false))
 

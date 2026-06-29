@@ -159,3 +159,11 @@ func (a *Asset) RandomAssetWithRating(ratingID string, requestID, deviceID strin
 
 	return fmt.Errorf("no assets found with rating '%.2f'. Max retries reached", rating)
 }
+
+func (a *Asset) UpdateRating(deviceID string, rating int) error {
+	body := UpdateAssetBody{
+		Rating: rating,
+	}
+
+	return a.updateAsset(deviceID, body)
+}

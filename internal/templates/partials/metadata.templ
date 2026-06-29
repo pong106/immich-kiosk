@@ -53,7 +53,7 @@ templ AssetMetadata(viewData common.ViewData, assetIndex int) {
 	}
 	<div class={ "asset--metadata", fmt.Sprintf("asset--metadata--theme-%s", viewData.Theme), templ.KV("right-align-icons", rightAlignIcons), className }>
 		if viewData.ShowImageRating {
-			@ratingStars(viewData.Assets[assetIndex].ImmichAsset.ExifInfo.Rating)
+			@ratingStars(viewData.Assets[assetIndex].ImmichAsset.ID, viewData.Assets[assetIndex].ImmichAsset.SelectedUser(), viewData.Assets[assetIndex].ImmichAsset.ExifInfo.Rating)
 		}
 		if showUser && viewData.Assets[assetIndex].User != "" {
 			@userIcon(cases.Title(language.English).String(viewData.Assets[assetIndex].User))
