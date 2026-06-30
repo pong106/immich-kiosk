@@ -493,7 +493,7 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 
 		assetID := c.FormValue("assetID")
 		ratingStr := c.FormValue("rating")
-		allowEdit := c.FormValue("allowEdit") == "true"
+		allowEdit, _ := strconv.ParseBool(c.FormValue("allowEdit"))
 		user := strings.TrimSpace(c.FormValue("user"))
 		if user != "" {
 			requestConfig.SelectedUser = user
@@ -563,7 +563,7 @@ func ClearRatingAsset(baseConfig *config.Config, com *common.Common) echo.Handle
 		)
 
 		assetID := c.FormValue("assetID")
-		allowEdit := c.FormValue("allowEdit") == "true"
+		allowEdit, _ := strconv.ParseBool(c.FormValue("allowEdit"))
 		user := strings.TrimSpace(c.FormValue("user"))
 		if user != "" {
 			requestConfig.SelectedUser = user
