@@ -540,8 +540,7 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 			return nil
 		}
 
-		log.Info(requestID+" asset rating changed", "assetID", assetID, "rating", rating)
-		return nil
+		return Render(c, http.StatusOK, partials.RatingStars(assetID, user, rating, false))
 	}
 }
 
@@ -599,7 +598,6 @@ func ClearRatingAsset(baseConfig *config.Config, com *common.Common) echo.Handle
 			return nil
 		}
 
-		log.Info(requestID+" asset rating changed", "assetID", assetID, "rating", -1)
-		return nil
+		return Render(c, http.StatusOK, partials.RatingStars(assetID, user, 0, false))
 	}
 }
