@@ -203,7 +203,7 @@ func main() {
 
 	e.GET("/sleep", routes.Sleep(baseConfig))
 
-	e.GET("/cache/flush", routes.FlushCache(baseConfig, c))
+	e.Match([]string{http.MethodGet, http.MethodPost}, "/cache/flush", routes.FlushCache(baseConfig, c))
 
 	e.POST("/refresh/check", routes.RefreshCheck(baseConfig))
 
