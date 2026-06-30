@@ -245,7 +245,7 @@ templ originalAssetData(img immich.Asset) {
 
 templ rating(assetID, selectedUser string, rating int) {
 	<div class="more-info--rating">
-		@RatingStars(assetID, selectedUser, rating, true)
+		@RatingStars(assetID, selectedUser, rating, true, false)
 	</div>
 }
 
