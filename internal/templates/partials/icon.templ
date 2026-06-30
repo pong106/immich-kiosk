@@ -187,7 +187,7 @@ templ memoryIcon(data string) {
 templ RatingStars(assetID, selectedUser string, rating int, initJS bool) {
 	{{
 		ID := uuid.New().String()
-		targetClass := fmt.Sprintf("rating-%s", assetID)
+		targetClass := fmt.Sprintf("rating-%s", ID)
 		stars := min(max(rating, 0), 5)
 	}}
 	<div class={ targetClass }>

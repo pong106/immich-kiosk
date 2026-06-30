@@ -1,6 +1,4 @@
 function initRatingStars(id: string): void {
-    console.log("Initializing rating stars for:", id);
-
     const container = document.getElementById(id);
     if (!container) return;
 
