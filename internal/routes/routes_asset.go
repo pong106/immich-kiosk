@@ -475,6 +475,9 @@ func HideAsset(baseConfig *config.Config, com *common.Common, hideAsset bool) ec
 }
 
 func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
+	if baseConfig.Kiosk.DemoMode {
+		return nil
+	}
 	return func(c *echo.Context) error {
 		requestData, err := InitializeRequestData(c, baseConfig)
 		if err != nil {
@@ -515,10 +518,6 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid rating")
 		}
 
-		if baseConfig.Kiosk.DemoMode {
-			return nil
-		}
-
 		immichAsset := immich.New(com.Context(), requestConfig)
 		immichAsset.ID = assetID
 		infoErr := immichAsset.AssetInfo(requestID, requestData.DeviceID)
@@ -546,6 +545,9 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 }
 
 func ClearRatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
+	if baseConfig.Kiosk.DemoMode {
+		return nil
+	}
 	return func(c *echo.Context) error {
 		requestData, err := InitializeRequestData(c, baseConfig)
 		if err != nil {
@@ -572,10 +574,6 @@ func ClearRatingAsset(baseConfig *config.Config, com *common.Common) echo.Handle
 		if assetID == "" {
 			log.Error("Asset ID is required")
 			return echo.NewHTTPError(http.StatusBadRequest, "Asset ID is required")
-		}
-
-		if baseConfig.Kiosk.DemoMode {
-			return nil
 		}
 
 		immichAsset := immich.New(com.Context(), requestConfig)
