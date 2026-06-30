@@ -51,7 +51,7 @@ templ RenderMoreInfo(viewData common.ViewData, secret string) {
 							)
 						</div>
 					}
-					@rating(img.ImmichAsset.ID, img.ImmichAsset.SelectedUser(), img.ImmichAsset.ExifInfo.Rating)
+					@rating(img.ImmichAsset.ID, img.ImmichAsset.SelectedUser(), img.ImmichAsset.ExifInfo.Rating, viewData.UseOfflineMode)
 					@originalImageTimeLocation(viewData, i)
 					@cameraData(img.ImmichAsset.ExifInfo)
 					@originalAssetData(img.ImmichAsset)
@@ -243,9 +243,15 @@ templ originalAssetData(img immich.Asset) {
 	</div>
 }
 
-templ rating(assetID, selectedUser string, rating int) {
+templ rating(assetID, selectedUser string, rating int, offlineMode bool) {
 	<div class="more-info--rating">
-		@RatingStars(assetID, selectedUser, rating, true, false)
+		{{
+			editable := true
+			if offlineMode {
+				editable = false
+			}
+		}}
+		@RatingStars(assetID, selectedUser, rating, editable, false)
 	</div>
 }
 

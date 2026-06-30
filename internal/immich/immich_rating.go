@@ -162,7 +162,9 @@ func (a *Asset) RandomAssetWithRating(ratingID string, requestID, deviceID strin
 
 func (a *Asset) UpdateRating(deviceID string, rating int) error {
 	body := UpdateAssetBody{
-		Rating: rating,
+		Rating:     rating,
+		IsFavorite: a.IsFavorite,
+		IsArchived: a.IsArchived,
 	}
 
 	return a.updateAsset(deviceID, body)
