@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 
 	"charm.land/log/v2"
@@ -470,5 +471,133 @@ func HideAsset(baseConfig *config.Config, com *common.Common, hideAsset bool) ec
 		}
 
 		return Render(c, http.StatusOK, partials.HideButton(assetID, user, hideAsset, true, com.Secret()))
+	}
+}
+
+func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
+	if baseConfig.Kiosk.DemoMode {
+		return nil
+	}
+	return func(c *echo.Context) error {
+		requestData, err := InitializeRequestData(c, baseConfig)
+		if err != nil {
+			return err
+		}
+
+		requestConfig := requestData.RequestConfig
+		requestID := requestData.RequestID
+
+		log.Debug(
+			requestID,
+			"method", c.Request().Method,
+			"path", c.Request().URL.String(),
+			"requestConfig", requestConfig.String(),
+		)
+
+		assetID := c.FormValue("assetID")
+		ratingStr := c.FormValue("rating")
+		allowEdit, _ := strconv.ParseBool(c.FormValue("allowEdit"))
+		user := strings.TrimSpace(c.FormValue("user"))
+		if user != "" {
+			requestConfig.SelectedUser = user
+		}
+
+		if assetID == "" {
+			log.Error("Asset ID is required")
+			return echo.NewHTTPError(http.StatusBadRequest, "Asset ID is required")
+		}
+
+		if ratingStr == "" {
+			log.Error("Rating is required")
+			return echo.NewHTTPError(http.StatusBadRequest, "Rating is required")
+		}
+
+		rating, err := strconv.Atoi(ratingStr)
+		if err != nil {
+			log.Error("Invalid rating", "rating", ratingStr, "error", err)
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid rating")
+		}
+
+		immichAsset := immich.New(com.Context(), requestConfig)
+		immichAsset.ID = assetID
+		infoErr := immichAsset.AssetInfo(requestID, requestData.DeviceID)
+		if infoErr != nil {
+			log.Error(requestID+" error getting asset info", "assetID", assetID, "error", infoErr)
+			return infoErr
+		}
+
+		var eg error
+
+		// Update Asset Rating
+		ratingErr := immichAsset.UpdateRating(requestData.DeviceID, rating)
+		if ratingErr != nil {
+			log.Error(requestID+" error changing asset rating", "assetID", assetID, "error", ratingErr)
+			eg = errors.Join(eg, ratingErr)
+		}
+
+		if eg != nil {
+			log.Error(requestID+" error changing asset rating", "assetID", assetID, "error", eg)
+			return nil
+		}
+
+		return Render(c, http.StatusOK, partials.RatingStars(assetID, user, rating, allowEdit, true))
+	}
+}
+
+func ClearRatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
+	if baseConfig.Kiosk.DemoMode {
+		return nil
+	}
+	return func(c *echo.Context) error {
+		requestData, err := InitializeRequestData(c, baseConfig)
+		if err != nil {
+			return err
+		}
+
+		requestConfig := requestData.RequestConfig
+		requestID := requestData.RequestID
+
+		log.Debug(
+			requestID,
+			"method", c.Request().Method,
+			"path", c.Request().URL.String(),
+			"requestConfig", requestConfig.String(),
+		)
+
+		assetID := c.FormValue("assetID")
+		allowEdit, _ := strconv.ParseBool(c.FormValue("allowEdit"))
+		user := strings.TrimSpace(c.FormValue("user"))
+		if user != "" {
+			requestConfig.SelectedUser = user
+		}
+
+		if assetID == "" {
+			log.Error("Asset ID is required")
+			return echo.NewHTTPError(http.StatusBadRequest, "Asset ID is required")
+		}
+
+		immichAsset := immich.New(com.Context(), requestConfig)
+		immichAsset.ID = assetID
+		infoErr := immichAsset.AssetInfo(requestID, requestData.DeviceID)
+		if infoErr != nil {
+			log.Error(requestID+" error getting asset info", "assetID", assetID, "error", infoErr)
+			return infoErr
+		}
+
+		var eg error
+
+		// Update Asset Rating
+		ratingErr := immichAsset.UpdateRating(requestData.DeviceID, -1)
+		if ratingErr != nil {
+			log.Error(requestID+" error changing asset rating", "assetID", assetID, "error", ratingErr)
+			eg = errors.Join(eg, ratingErr)
+		}
+
+		if eg != nil {
+			log.Error(requestID+" error changing asset rating", "assetID", assetID, "error", eg)
+			return nil
+		}
+
+		return Render(c, http.StatusOK, partials.RatingStars(assetID, user, 0, allowEdit, true))
 	}
 }
