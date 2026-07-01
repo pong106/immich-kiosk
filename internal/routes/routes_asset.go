@@ -532,17 +532,10 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 			return infoErr
 		}
 
-		var eg error
-
 		// Update Asset Rating
 		ratingErr := immichAsset.UpdateRating(requestData.DeviceID, rating)
 		if ratingErr != nil {
 			log.Error("changing asset rating", "assetID", assetID, "error", ratingErr)
-			eg = errors.Join(eg, ratingErr)
-		}
-
-		if eg != nil {
-			log.Error("changing asset rating", "assetID", assetID, "error", eg)
 			return nil
 		}
 

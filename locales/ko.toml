@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "기본 옵션 보기"
 clear_cache = "서버 캐시 지우기"
+clear_rating = ""
 configuration = "구성"
 current_version = "현재 버전"
 downloading_assets = ""

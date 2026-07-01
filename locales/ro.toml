@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Vezi opțiuni de bază"
 clear_cache = "Șterge memoria cache a serverului"
+clear_rating = ""
 configuration = "Configurație"
 current_version = "Versiunea curentă"
 downloading_assets = ""

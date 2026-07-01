@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Bekijk basisopties"
 clear_cache = "Servercache wissen"
+clear_rating = ""
 configuration = "Configuratie"
 current_version = "Huidige versie"
 downloading_assets = ""

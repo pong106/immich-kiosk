@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Näytä perusasetukset"
 clear_cache = "Tyhjennä palvelimen välimuisti"
+clear_rating = ""
 configuration = "Asetukset"
 current_version = "Nykyinen versio"
 downloading_assets = ""

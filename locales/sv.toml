@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Visa grundläggande alternativ"
 clear_cache = "Rensa servercache"
+clear_rating = ""
 configuration = "Konfiguration"
 current_version = "Nuvarande version"
 downloading_assets = ""

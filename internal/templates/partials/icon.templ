@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/damongolding/immich-kiosk/internal/i18n"
 	"github.com/google/uuid"
 )
 
@@ -186,6 +187,7 @@ templ memoryIcon(data string) {
 
 templ RatingStars(assetID, selectedUser string, rating int, allowEdit bool, oob bool) {
 	{{
+		t := i18n.T()
 		ID := uuid.New().String()
 		targetClass := fmt.Sprintf("rating-%s", assetID)
 		stars := min(max(rating, 0), 5)
@@ -228,7 +230,7 @@ templ RatingStars(assetID, selectedUser string, rating int, allowEdit bool, oob 
 					hx-trigger="click throttle:2s"
 					hx-vals={ fmt.Sprintf(`{"assetID": "%s", "user": "%s", "allowEdit": "%v"}`, assetID, selectedUser, allowEdit) }
 				>
-					Clear rating
+					{ t("clear_rating") }
 				</button>
 			</div>
 		}

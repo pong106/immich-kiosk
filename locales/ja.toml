@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "基本オプションを表示"
 clear_cache = "サーバーキャッシュをクリア"
+clear_rating = ""
 configuration = "設定"
 current_version = "現在のバージョン"
 downloading_assets = ""

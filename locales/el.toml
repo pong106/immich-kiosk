@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Προβολή βασικών επιλογών"
 clear_cache = "Εκκαθάριση προσωρινής μνήμης διακομιστή"
+clear_rating = ""
 configuration = "Διαμόρφωση"
 current_version = "Τρέχουσα έκδοση"
 downloading_assets = ""

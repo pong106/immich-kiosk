@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Vis grunnleggjande val"
 clear_cache = "Tøm tenarbuffer"
+clear_rating = ""
 configuration = "Konfigurasjon"
 current_version = "Gjeldande versjon"
 downloading_assets = ""

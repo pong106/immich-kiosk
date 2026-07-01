@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Temel seçenekleri görüntüle"
 clear_cache = "Sunucu önbelleğini temizle"
+clear_rating = ""
 configuration = "Yapılandırma"
 current_version = "Mevcut Sürüm"
 downloading_assets = ""

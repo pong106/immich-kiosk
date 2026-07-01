@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Vis grundlæggende muligheder"
 clear_cache = "Ryd servercache"
+clear_rating = ""
 configuration = "Konfiguration"
 current_version = "Nuværende version"
 downloading_assets = ""

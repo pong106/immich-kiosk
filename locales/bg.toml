@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Вижте основните опции"
 clear_cache = "Изчистете кеша на сървъра"
+clear_rating = ""
 configuration = "Конфигурация"
 current_version = "Текуща версия"
 downloading_assets = ""

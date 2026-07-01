@@ -1,6 +1,7 @@
 assets = ""
 basic_options = "Vis grunnleggende alternativer"
 clear_cache = "Tøm serverbuffer"
+clear_rating = ""
 configuration = "Konfigurasjon"
 current_version = "Nåværende versjon"
 downloading_assets = ""
