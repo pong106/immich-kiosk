@@ -338,6 +338,5 @@ func TemplString(t templ.Component) (string, error) {
 	if err := t.Render(context.Background(), &b); err != nil {
 		return "", err
 	}
-	s := b.String()
-	return s, nil
+	return b.String(), nil
 }
