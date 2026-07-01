@@ -24,7 +24,7 @@ import (
 	"github.com/damongolding/immich-kiosk/internal/webhooks"
 )
 
-// NewAsset returns an echo.HandlerFunc that handles requests for new assets.
+// NewAsset returns an echo.HandlerFunc that handles requests fogr new assets.
 // It manages image processing, caching, and prefetching based on the configuration.
 func NewAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
 	return func(c *echo.Context) error {
@@ -520,7 +520,7 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 		}
 
 		if rating < 0 || rating > 5 {
-			log.Error("Rating out of range", "rating", ratingStr, "error", err)
+			log.Error("Rating out of range", "rating", ratingStr)
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid rating")
 		}
 
