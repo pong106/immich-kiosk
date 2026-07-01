@@ -3,6 +3,7 @@ package partials
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/damongolding/immich-kiosk/internal/i18n"
 	"github.com/google/uuid"
@@ -201,14 +202,22 @@ templ RatingStars(assetID, selectedUser string, rating int, allowEdit bool, oob 
 		<div class="asset--metadata--has-icon">
 			<div id={ ID } class={ "asset--metadata--icon", "asset--metadata--rating-stars", fmt.Sprintf("rating-stars-%v", stars) }>
 				for i := range 5 {
-					{{ filled := i < stars }}
+					{{
+						filled := i < stars
+						vals, _ := json.Marshal(map[string]string{
+							"assetID":   assetID,
+							"user":      selectedUser,
+							"rating":    fmt.Sprintf("%d", i+1),
+							"allowEdit": fmt.Sprintf("%v", allowEdit),
+						})
+					}}
 					<span
 						class="rating-star-container"
-						data-star-index={ fmt.Sprintf("%d", i) }
+						data-star-index={ i }
 						if allowEdit {
 							hx-post="/asset/rating"
 							hx-trigger="click throttle:2s"
-							hx-vals={ fmt.Sprintf(`{"assetID": "%s", "user": "%s", "rating": "%d", "allowEdit": "%v"}`, assetID, selectedUser, i+1, allowEdit) }
+							hx-vals={ vals }
 						}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="576" height="512" class={ templ.KV("is-filled", filled), "star-filled" }>
@@ -223,12 +232,19 @@ templ RatingStars(assetID, selectedUser string, rating int, allowEdit bool, oob 
 			<div></div>
 		</div>
 		if stars > 0 && allowEdit {
+			{{
+				vals, _ := json.Marshal(map[string]string{
+					"assetID":   assetID,
+					"user":      selectedUser,
+					"allowEdit": fmt.Sprintf("%v", allowEdit),
+				})
+			}}
 			<div>
 				<button
 					class="clear-rating"
 					hx-post="/asset/rating/clear"
 					hx-trigger="click throttle:2s"
-					hx-vals={ fmt.Sprintf(`{"assetID": "%s", "user": "%s", "allowEdit": "%v"}`, assetID, selectedUser, allowEdit) }
+					hx-vals={ vals }
 				>
 					{ t("clear_rating") }
 				</button>
