@@ -1,7 +1,7 @@
 assets = ""
 basic_options = "查看基础选项"
 clear_cache = "清除服务器缓存"
-clear_rating = ""
+clear_rating = "清晰评级"
 configuration = "配置"
 current_version = "当前版本"
 downloading_assets = ""

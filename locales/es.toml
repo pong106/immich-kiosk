@@ -1,7 +1,7 @@
 assets = ""
 basic_options = "Ver opciones básicas"
 clear_cache = "Limpiar caché del servidor"
-clear_rating = ""
+clear_rating = "Calificación clara"
 configuration = "Configuración"
 current_version = "Versión actual"
 downloading_assets = ""
