@@ -163,6 +163,7 @@ func (a *Asset) albumAssets(albumID, requestID, deviceID string, favoritesOnly b
 	}
 
 	album.Assets = res.Assets
+	album.ID = albumID
 
 	return album, res.URL, nil
 }
@@ -225,7 +226,6 @@ func (a *Asset) AlbumImageCount(albumID string, requestID, deviceID string) (int
 		if err != nil {
 			return 0, fmt.Errorf("get album assets for album %s: %w", albumID, err)
 		}
-		log.Info(requestID+" AlbumImageCount", "albumID", albumID, "assetCount", len(album.Assets))
 		return len(album.Assets), nil
 	}
 }
