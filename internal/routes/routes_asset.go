@@ -475,10 +475,11 @@ func HideAsset(baseConfig *config.Config, com *common.Common, hideAsset bool) ec
 }
 
 func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
-	if baseConfig.Kiosk.DemoMode {
-		return nil
-	}
 	return func(c *echo.Context) error {
+		if baseConfig.Kiosk.DemoMode {
+			return nil
+		}
+
 		requestData, err := InitializeRequestData(c, baseConfig)
 		if err != nil {
 			return err
@@ -550,10 +551,11 @@ func RatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc
 }
 
 func ClearRatingAsset(baseConfig *config.Config, com *common.Common) echo.HandlerFunc {
-	if baseConfig.Kiosk.DemoMode {
-		return nil
-	}
 	return func(c *echo.Context) error {
+		if baseConfig.Kiosk.DemoMode {
+			return nil
+		}
+
 		requestData, err := InitializeRequestData(c, baseConfig)
 		if err != nil {
 			return err
