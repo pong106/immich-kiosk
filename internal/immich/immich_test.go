@@ -611,32 +611,27 @@ func TestIsAnimatedGif(t *testing.T) {
 	}{
 		{
 			name:     "animated gif",
-			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: "0:00:01.0"},
+			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: 1000},
 			expected: true,
 		},
 		{
 			name:     "non-animated gif",
-			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: "0:00:00.0"},
+			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: 0},
 			expected: false,
 		},
 		{
 			name:     "non-gif",
-			asset:    &Asset{OriginalMimeType: "image/jpeg", Duration: "0:00:01.0"},
+			asset:    &Asset{OriginalMimeType: "image/jpeg", Duration: 1000},
 			expected: false,
 		},
 		{
 			name:     "animated gif with invalid duration",
-			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: "invalid"},
+			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: -1},
 			expected: false,
 		},
 		{
 			name:     "animated gif with invalid duration - missing minutes and seconds",
-			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: "0"},
-			expected: false,
-		},
-		{
-			name:     "animated gif with invalid duration - missing seconds",
-			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: "0:00"},
+			asset:    &Asset{OriginalMimeType: kiosk.MimeTypeGif, Duration: 0},
 			expected: false,
 		},
 	}

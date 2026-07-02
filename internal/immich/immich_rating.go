@@ -42,12 +42,12 @@ func (a *Asset) AssetsWithRatingCount(rating float32, requestID, deviceID string
 	filterDate(&requestBody, a.requestConfig.FilterDate)
 	filterFavorites(&requestBody, a.requestConfig.FilterFavorites)
 
-	allAssetsCount, assetsErr := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	res, assetsErr := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
 	if assetsErr != nil {
 		return totalAssetsCount, assetsErr
 	}
 
-	totalAssetsCount += allAssetsCount
+	totalAssetsCount += len(res.Assets)
 
 	return totalAssetsCount, nil
 }
@@ -158,4 +158,14 @@ func (a *Asset) RandomAssetWithRating(ratingID string, requestID, deviceID strin
 	}
 
 	return fmt.Errorf("no assets found with rating '%.2f'. Max retries reached", rating)
+}
+
+func (a *Asset) UpdateRating(deviceID string, rating int) error {
+	body := UpdateAssetBody{
+		Rating:     rating,
+		IsFavorite: a.IsFavorite,
+		IsArchived: a.IsArchived,
+	}
+
+	return a.updateAsset(deviceID, body)
 }

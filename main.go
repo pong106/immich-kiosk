@@ -191,6 +191,9 @@ func main() {
 
 	e.POST("/asset/tag", routes.TagAsset(baseConfig, c))
 
+	e.POST("/asset/rating", routes.RatingAsset(baseConfig, c))
+	e.POST("/asset/rating/clear", routes.ClearRatingAsset(baseConfig, c))
+
 	e.POST("/asset/like", routes.LikeAsset(baseConfig, c, true))
 	e.POST("/asset/unlike", routes.LikeAsset(baseConfig, c, false))
 
@@ -203,7 +206,7 @@ func main() {
 
 	e.GET("/sleep", routes.Sleep(baseConfig))
 
-	e.GET("/cache/flush", routes.FlushCache(baseConfig, c))
+	e.Match([]string{http.MethodGet, http.MethodPost}, "/cache/flush", routes.FlushCache(baseConfig, c))
 
 	e.POST("/refresh/check", routes.RefreshCheck(baseConfig))
 

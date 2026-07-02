@@ -43,6 +43,8 @@ const (
 	Asc  AssetOrder = "asc"
 	Desc AssetOrder = "desc"
 	Rand AssetOrder = "rand"
+
+	MetadataEndpoint = "api/search/metadata"
 )
 
 var (
@@ -77,9 +79,13 @@ type PersonStatistics struct {
 }
 
 type Error struct {
-	Error      string   `json:"error"`
-	Message    []string `json:"message"`
-	StatusCode int      `json:"statusCode"`
+	Path    []string `json:"path"`
+	Message string   `json:"message"`
+}
+
+type ErrorResponse struct {
+	Message string  `json:"message"`
+	Errors  []Error `json:"errors"`
 }
 
 type Owner struct {
@@ -109,7 +115,7 @@ type ExifInfo struct {
 	ModifyDate       time.Time `json:"modifyDate"`
 	Orientation      string    `json:"orientation"`
 	ProjectionType   any       `json:"-"` // `json:"projectionType"`
-	Rating           float32   `json:"rating"`
+	Rating           int       `json:"rating"`
 	State            string    `json:"state"`
 	TimeZone         string    `json:"timeZone"`
 }
@@ -139,7 +145,7 @@ type Tag struct {
 	Value     string    `json:"value"` // e.g "parent/child"
 	CreatedAt time.Time `json:"-"`     // `json:"createdAt"`
 	UpdatedAt time.Time `json:"-"`     // `json:"updatedAt"`
-	Color     string    `json:"color"`
+	Color     string    `json:"color,omitempty"`
 }
 
 type Face struct {
@@ -154,60 +160,75 @@ type Face struct {
 }
 
 type Asset struct {
-	FileCreatedAt  time.Time `json:"-"` // `json:"fileCreatedAt"`
-	FileModifiedAt time.Time `json:"-"` // `json:"fileModifiedAt"`
-	LocalDateTime  time.Time `json:"localDateTime"`
-	UpdatedAt      time.Time `json:"-"` // `json:"updatedAt"`
-	StackCount     any       `json:"-"` // `json:"stackCount"`
-	DuplicateID    any       `json:"-"` // `json:"duplicateId"`
-
-	ctx context.Context `json:"-" msgpack:"-"`
-
-	mu               *sync.Mutex
-	Owner            Owner     `json:"owner"`
+	Checksum         string    `json:"checksum"`
+	DuplicateID      any       `json:"-"`        // `json:"duplicateId"`
+	Duration         int64     `json:"duration"` // milliseconds
+	ExifInfo         ExifInfo  `json:"exifInfo"`
+	FileCreatedAt    time.Time `json:"-"` // `json:"fileCreatedAt"`
+	FileModifiedAt   time.Time `json:"-"` // `json:"fileModifiedAt"`
+	HasMetadata      bool      `json:"-"` // `json:"hasMetadata"`
 	ID               string    `json:"id"`
-	DeviceAssetID    string    `json:"-"` // `json:"deviceAssetId"`
-	OwnerID          string    `json:"ownerId"`
-	DeviceID         string    `json:"-"` // `json:"deviceId"`
+	IsArchived       bool      `json:"isArchived"`
+	IsEdited         bool      `json:"isEdited"`
+	IsFavorite       bool      `json:"isFavorite"`
+	IsOffline        bool      `json:"-"` // `json:"isOffline"`
+	IsTrashed        bool      `json:"isTrashed"`
 	LibraryID        string    `json:"-"` // `json:"libraryId"`
-	Type             AssetType `json:"type"`
-	OriginalPath     string    `json:"-"` // `json:"originalPath"`
+	LivePhotoVideoID string    `json:"livePhotoVideoId"`
+	LocalDateTime    time.Time `json:"localDateTime"`
 	OriginalFileName string    `json:"originalFileName"`
 	OriginalMimeType string    `json:"originalMimeType"`
-	ServedMimeType   string    `json:"servedMimeType"` // mime type served from the Immich server
-	Thumbhash        string    `json:"-"`              // `json:"thumbhash"`
-	Duration         string    `json:"duration"`
-	LivePhotoVideoID string    `json:"livePhotoVideoId"`
-	Checksum         string    `json:"checksum"`
+	OriginalPath     string    `json:"-"` // `json:"originalPath"`
+	Owner            Owner     `json:"owner"`
+	OwnerID          string    `json:"ownerId"`
+	People           []Person  `json:"people"`
+	StackCount       any       `json:"-"` // `json:"stackCount"`
+	Tags             Tags      `json:"tags"`
+	Thumbhash        string    `json:"-"` // `json:"thumbhash"`
+	Type             AssetType `json:"type"`
+	UpdatedAt        time.Time `json:"-"` // `json:"updatedAt"`
 	Visibility       string    `json:"-"` // `json:"visibility"`
 
-	RatioWanted ImageOrientation `json:"-"`
-	MemoryTitle string           `json:"-"`
-	Bucket      kiosk.Source     `json:"kioskBucket"`
-	BucketID    string           `json:"kioskBucketId"`
+	// Kiosk specific fields
+	AppearsIn       Albums          `json:"kioskAppearsIn"`
+	Bucket          kiosk.Source    `json:"kioskBucket"`
+	BucketID        string          `json:"kioskBucketId"`
+	ctx             context.Context `json:"-" msgpack:"-"`
+	DeviceID        string          `json:"-"`
+	IsLandscape     bool            `json:"isLandscape"`
+	IsPortrait      bool            `json:"isPortrait"`
+	MemoryTitle     string          `json:"-"`
+	mu              *sync.Mutex
+	RatioWanted     ImageOrientation `json:"-"`
+	requestConfig   config.Config    `json:"-"`
+	ServedMimeType  string           `json:"servedMimeType"` // mime type served from the Immich server
+	UnassignedFaces []Face           `json:"unassignedFaces"`
+}
 
-	People          []Person `json:"people"`
-	Tags            Tags     `json:"tags"`
-	UnassignedFaces []Face   `json:"unassignedFaces"`
-	AppearsIn       Albums   `json:"kioskAppearsIn"`
-	ExifInfo        ExifInfo `json:"exifInfo"`
-
-	requestConfig config.Config `json:"-"`
-	IsEdited      bool          `json:"isEdited"`
-	IsFavorite    bool          `json:"isFavorite"`
-	IsArchived    bool          `json:"isArchived"`
-	IsTrashed     bool          `json:"isTrashed"`
-	IsOffline     bool          `json:"-"` // `json:"isOffline"`
-	HasMetadata   bool          `json:"-"` // `json:"hasMetadata"`
-	IsPortrait    bool          `json:"isPortrait"`
-	IsLandscape   bool          `json:"isLandscape"`
+type AlbumUsers struct {
+	User Owner  `json:"user"`
+	Role string `json:"role"`
 }
 
 type Album struct {
-	ID            string  `json:"id"`
-	AlbumName     string  `json:"albumName"`
+	AlbumName                  string       `json:"albumName"`
+	Description                string       `json:"description"`
+	AlbumThumbnailAssetID      string       `json:"albumThumbnailAssetId"`
+	CreatedAt                  string       `json:"createdAt"`
+	UpdatedAt                  string       `json:"updatedAt"`
+	ID                         string       `json:"id"`
+	AlbumUsers                 []AlbumUsers `json:"albumUsers"`
+	Shared                     bool         `json:"shared"`
+	HasSharedLink              bool         `json:"hasSharedLink"`
+	StartDate                  string       `json:"startDate"`
+	EndDate                    string       `json:"endDate"`
+	AssetCount                 int          `json:"assetCount"`
+	IsActivityEnabled          bool         `json:"isActivityEnabled"`
+	Order                      string       `json:"order"`
+	LastModifiedAssetTimestamp string       `json:"lastModifiedAssetTimestamp"`
+
+	// Kiosk specific fields
 	Assets        []Asset `json:"assets"`
-	AssetCount    int     `json:"assetCount"`
 	AssetsOrdered bool    `json:"assetsOrdered"`
 }
 
@@ -250,6 +271,9 @@ type SearchRandomBody struct {
 	WithExif      bool     `url:"withExif,omitempty" json:"withExif,omitempty"`
 	WithPeople    bool     `url:"withPeople,omitempty" json:"withPeople,omitempty"`
 	WithStacked   bool     `url:"withStacked,omitempty" json:"withStacked,omitempty"`
+
+	// Kiosk specific fields
+	PaginationComplete bool `url:"paginationComplete,omitempty" json:"paginationComplete,omitempty"`
 }
 
 type TagAssetsBody struct {
