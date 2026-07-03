@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/damongolding/immich-kiosk/internal/common"
+	"github.com/damongolding/immich-kiosk/internal/demo"
 	"github.com/damongolding/immich-kiosk/internal/i18n"
 	"github.com/damongolding/immich-kiosk/internal/immich"
 	"github.com/damongolding/immich-kiosk/internal/kiosk"
@@ -59,7 +60,7 @@ templ RenderMoreInfo(viewData common.ViewData, secret string) {
 					@tags(img.ImmichAsset.Tags)
 					<div class="more-info--button-group">
 						if viewData.ShowMoreInfoImageLink {
-							<a class="more-info--image-link" href={ templ.SafeURL(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.ButtonOpenInApp)) } target="_blank">
+							<a class="more-info--image-link" href={ templ.SafeURL(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.ButtonOpenInApp, viewData.Kiosk.DemoMode)) } target="_blank">
 								{ t("immich_link_btn") }
 							</a>
 						}
@@ -79,7 +80,7 @@ templ RenderMoreInfo(viewData common.ViewData, secret string) {
 				</div>
 				if viewData.ShowMoreInfoQrCode {
 					<div class="more-info--image--qr-code">
-						<img src={ utils.CreateQrCode(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.QrCodeOpenInApp)) }/>
+						<img src={ utils.CreateQrCode(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.QrCodeOpenInApp, viewData.Kiosk.DemoMode)) }/>
 					</div>
 				}
 			</div>
@@ -396,7 +397,7 @@ func tags(tags immich.Tags) templ.Component {
 //
 // Returns:
 //   - The complete URL string for viewing the image, or '#' if URL parsing fails
-func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink bool) string {
+func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink, demoMode bool) string {
 
 	urlToParse := externalUrl
 	if urlToParse == "" {
@@ -405,6 +406,10 @@ func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink bool) strin
 
 	if useAppLink {
 		urlToParse = "https://my.immich.app"
+	}
+
+	if demoMode && !strings.Contains(urlToParse, demo.DemoImmichURL) {
+		urlToParse = demo.DemoImmichURL
 	}
 
 	u, err := url.Parse(urlToParse)

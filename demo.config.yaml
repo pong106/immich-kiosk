@@ -24,8 +24,6 @@ image_fit: cover # how the image fits the screen. Options are none, contain and 
 image_effect: smart-zoom
 image_effect_amount: 200
 
-albums: f9695ff6-2140-49e7-9d0d-56ab8402f514
-
 ## Image METADATA
 show_album_name: true
 show_person_name: true
