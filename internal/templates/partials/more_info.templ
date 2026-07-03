@@ -394,6 +394,7 @@ func tags(tags immich.Tags) templ.Component {
 //   - externalUrl: The external URL of the Immich instance, if different from base URL
 //   - imageID: The ID of the image to view
 //   - useAppLink: If true, uses https://my.immich.app instead of the base/external URL
+//   - demoMode: If true, forces the URL to the public demo instance
 //
 // Returns:
 //   - The complete URL string for viewing the image, or '#' if URL parsing fails
@@ -408,7 +409,7 @@ func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink, demoMode b
 		urlToParse = "https://my.immich.app"
 	}
 
-	if demoMode && !strings.Contains(urlToParse, demo.DemoImmichURL) {
+	if demoMode {
 		urlToParse = demo.DemoImmichURL
 	}
 
