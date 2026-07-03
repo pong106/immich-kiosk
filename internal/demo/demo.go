@@ -36,7 +36,7 @@ type ValidateResponse struct {
 	AuthStatus bool `json:"authStatus"`
 }
 
-const demoImmichURL = "https://demo.immich.app"
+const DemoImmichURL = "https://demo.immich.app"
 
 var (
 	demoTokenMutex sync.RWMutex
@@ -48,7 +48,7 @@ var httpClient = &http.Client{
 }
 
 func ValidateToken(ctx context.Context, token string) bool {
-	demoURL := demoImmichURL
+	demoURL := DemoImmichURL
 	if os.Getenv("KIOSK_IMMICH_URL") != "" {
 		demoURL = os.Getenv("KIOSK_IMMICH_URL")
 	}
@@ -118,7 +118,7 @@ func Login(ctx context.Context, refresh bool) (string, error) {
 		return "", err
 	}
 
-	demoURL := demoImmichURL
+	demoURL := DemoImmichURL
 	if os.Getenv("KIOSK_IMMICH_URL") != "" {
 		demoURL = os.Getenv("KIOSK_IMMICH_URL")
 	}

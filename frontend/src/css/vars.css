@@ -1,7 +1,4 @@
 :root {
-    color-scheme: only light !important;
-
-    /* colours */
     --light-grey: #f7f9f8;
     --mid-grey: #6d727a;
     --dark-grey: #333333;
@@ -42,4 +39,6 @@
 
     --burn-in-fade: 10s;
     --burn-in-opacity: 0.7;
+
+    color-scheme: only light !important;
 }
