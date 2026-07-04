@@ -29,14 +29,14 @@ import (
 // immichAPIFail handles failures in Immich API calls by unmarshaling the error response,
 // logging the error, and returning a formatted error along with the original value.
 func immichAPIFail[T APIResponse](value T, err error, body []byte, apiURL string) (T, string, error) {
-	var immichError Error
+	var immichError ErrorResponse
 	errorUnmarshalErr := json.Unmarshal(body, &immichError)
 	if errorUnmarshalErr != nil {
 		log.Error("Couldn't read error", "body", string(body), "url", apiURL)
 		return value, apiURL, err
 	}
-	log.Errorf("%s : %v", immichError.Error, immichError.Message)
-	return value, apiURL, fmt.Errorf("%s : %v", immichError.Error, immichError.Message)
+	log.Errorf("%s : %v", immichError.Message, immichError.Errors)
+	return value, apiURL, fmt.Errorf("%s : %v", immichError.Message, immichError.Errors)
 }
 
 // withImmichAPICache wraps an Immich API call with caching logic, returning cached responses when available.
@@ -228,6 +228,7 @@ func (a *Asset) immichAPICall(ctx context.Context, method, apiURL string, body [
 // fetchAssets handles the API call and unmarshalling for both random and metadata endpoints.
 // FilterDate is applied here.
 // FilterNewest is applied here.
+// filterFavorites is applied here.
 func (a *Asset) fetchAssets(requestID, deviceID string, requestBody SearchRandomBody) ([]Asset, url.URL, error) {
 	filterNewest := a.requestConfig.FilterNewest > 0
 
@@ -239,7 +240,8 @@ func (a *Asset) fetchAssets(requestID, deviceID string, requestBody SearchRandom
 		return nil, url.URL{}, err
 	}
 
-	FilterDate(&requestBody, a.requestConfig.FilterDate)
+	filterDate(&requestBody, a.requestConfig.FilterDate)
+	filterFavorites(&requestBody, a.requestConfig.FilterFavorites)
 
 	if filterNewest {
 		requestBody.Size = a.requestConfig.FilterNewest
@@ -249,7 +251,7 @@ func (a *Asset) fetchAssets(requestID, deviceID string, requestBody SearchRandom
 
 	apiPath := "api/search/random"
 	if filterNewest {
-		apiPath = "api/search/metadata"
+		apiPath = MetadataEndpoint
 	}
 
 	apiURL := url.URL{
@@ -684,20 +686,16 @@ func (a *Asset) hasValidBasicProperties(allowedTypes []AssetType, wantedRatio Im
 	return true
 }
 
+// isAnimatedGif checks if the asset is an animated GIF.
+// Has been substantially simplified from the original implementation but to Immich V3.
+//
+// Returns:
+//   - bool: true if the asset is an animated GIF, false otherwise
 func (a *Asset) isAnimatedGif() bool {
-	if a.OriginalMimeType != kiosk.MimeTypeGif {
+	if a.OriginalMimeType != kiosk.MimeTypeGif || a.Duration <= 0 {
 		return false
 	}
-
-	var hours, minutes int
-	var seconds float64
-	if _, err := fmt.Sscanf(a.Duration, "%d:%d:%f", &hours, &minutes, &seconds); err != nil {
-		log.Error("could not parse duration for animated gif", "err", err)
-		return false
-	}
-
-	totalSeconds := float64(hours*3600+minutes*60) + seconds
-	return totalSeconds > 0
+	return true
 }
 
 // hasValidFilterDate validates if the asset's date matches the configured date filter criteria.
@@ -849,8 +847,15 @@ func (a *Asset) hasValidTags(requestID, deviceID string) bool {
 	})
 }
 
-func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (int, error) {
-	var totalCount int
+// PaginatedMetadataResponse
+// Holds the response from a paginated (all pages combined) metadata request, including the assets and the URL of the request.
+type PaginatedMetadataResponse struct {
+	Assets []Asset `json:"assets"`
+	URL    string  `json:"url"`
+}
+
+func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (PaginatedMetadataResponse, error) {
+	res := PaginatedMetadataResponse{}
 
 	for {
 
@@ -867,30 +872,30 @@ func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody,
 		apiURL := url.URL{
 			Scheme:   u.Scheme,
 			Host:     u.Host,
-			Path:     "api/search/metadata",
+			Path:     MetadataEndpoint,
 			RawQuery: queries.Encode(),
 		}
 
 		jsonBody, err := json.Marshal(requestBody)
 		if err != nil {
-			_, _, err = immichAPIFail(totalCount, err, nil, apiURL.String())
-			return totalCount, err
+			_, _, err = immichAPIFail(res.Assets, err, nil, apiURL.String())
+			return res, err
 		}
 
 		immichAPICall := withImmichAPICache(a.immichAPICall, requestID, deviceID, a.requestConfig, response)
 		apiBody, _, _, err := immichAPICall(a.ctx, http.MethodPost, apiURL.String(), jsonBody)
 		if err != nil {
 			_, _, err = immichAPIFail(response, err, apiBody, apiURL.String())
-			return totalCount, err
+			return res, err
 		}
 
 		err = json.Unmarshal(apiBody, &response)
 		if err != nil {
 			_, _, err = immichAPIFail(response, err, apiBody, apiURL.String())
-			return totalCount, err
+			return res, err
 		}
 
-		totalCount += response.Assets.Total
+		res.Assets = append(res.Assets, response.Assets.Items...)
 
 		if response.Assets.NextPage == "" {
 			break
@@ -899,7 +904,76 @@ func (a *Asset) fetchPaginatedMetadata(u *url.URL, requestBody SearchRandomBody,
 		requestBody.Page++
 	}
 
-	return totalCount, nil
+	return res, nil
+}
+
+// paginatedCache attempts to retrieve a PaginatedMetadataResponse from the cache.
+// It temporarily sets PaginationComplete to true on the request body to generate
+// the correct cache key URL, then restores it to false before returning.
+// Returns the cached response, the API URL string, and a boolean indicating a cache hit.
+func paginatedCache(u *url.URL, requestBody *SearchRandomBody, deviceID, selectedUser string) (PaginatedMetadataResponse, string, bool) {
+	requestBody.PaginationComplete = true
+
+	queries, _ := query.Values(requestBody)
+
+	apiURL := url.URL{
+		Scheme:   u.Scheme,
+		Host:     u.Host,
+		Path:     MetadataEndpoint,
+		RawQuery: queries.Encode(),
+	}
+
+	cacheKey := cache.APICacheKey(apiURL.String(), deviceID, selectedUser)
+
+	data, cacheHit := cache.Get(cacheKey)
+	if cacheHit {
+		bytesData, ok := data.([]byte)
+		if !ok {
+			log.Error("Cache data is not a byte slice", "cacheKey", cacheKey)
+			return PaginatedMetadataResponse{}, apiURL.String(), false
+		}
+		var res PaginatedMetadataResponse
+		if err := json.Unmarshal(bytesData, &res); err != nil {
+			log.Error("Failed to unmarshal cache data", "error", err)
+			return PaginatedMetadataResponse{}, apiURL.String(), false
+		}
+		if len(res.Assets) != 0 {
+			return res, apiURL.String(), true
+		}
+	}
+
+	requestBody.PaginationComplete = false
+
+	return PaginatedMetadataResponse{}, apiURL.String(), false
+}
+
+// fetchPaginatedMetadataWithCache fetches paginated asset metadata, using the cache
+// where possible. On a cache miss it calls fetchPaginatedMetadata, serialises the
+// result to JSON, and stores it in the cache for subsequent requests.
+func (a *Asset) fetchPaginatedMetadataWithCache(u *url.URL, requestBody SearchRandomBody, requestID string, deviceID string) (PaginatedMetadataResponse, error) {
+	cacheData, apiURL, cacheHit := paginatedCache(u, &requestBody, deviceID, a.requestConfig.SelectedUser)
+	if cacheHit {
+		return cacheData, nil
+	}
+
+	res, err := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	if err != nil {
+		return res, err
+	}
+
+	res.URL = apiURL
+
+	jsonBytes, marshalErr := json.Marshal(res)
+	if marshalErr != nil {
+		log.Error("Failed to marshal assetsToCache", "error", marshalErr)
+		return res, marshalErr
+	}
+
+	cacheKey := cache.APICacheKey(apiURL, deviceID, a.requestConfig.SelectedUser)
+
+	cache.Set(cacheKey, jsonBytes, a.requestConfig.Duration, a.requestConfig.CacheDuration)
+
+	return res, nil
 }
 
 func (a *Asset) updateAsset(deviceID string, requestBody UpdateAssetBody) error {

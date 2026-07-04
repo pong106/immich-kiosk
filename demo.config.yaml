@@ -24,8 +24,6 @@ image_fit: cover # how the image fits the screen. Options are none, contain and 
 image_effect: smart-zoom
 image_effect_amount: 200
 
-albums: f9695ff6-2140-49e7-9d0d-56ab8402f514
-
 ## Image METADATA
 show_album_name: true
 show_person_name: true
@@ -93,11 +91,14 @@ kiosk:
     - name: curated
       url: /?weather=rotate
 
-    - name: all
+    - name: bubble-theme
+      url: /?weather=rotate&theme=bubble
+
+    - name: solid-theme
+      url: /?weather=rotate&theme=solid
+
+    - name: random
       url: /?album=none&use_offline_mode=false&image_effect_amount=200
 
     - name: simple
       url: /?image_effect=none&layout=single&image_fit=contain&transition=none&disable_ui=true&show_more_info=false&use_offline_mode=false
-
-    - name: solid-theme
-      url: /?theme=solid&use_offline_mode=false

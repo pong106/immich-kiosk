@@ -17,7 +17,7 @@ import {
     toggleAssetOverlay,
     toggleRedirectsOverlay,
 } from "./menu";
-import { toggleMute } from "./mute";
+import { registerVideoMuteApi, toggleMute } from "./mute";
 import {
     initPolling,
     pausePolling,
@@ -150,6 +150,8 @@ async function init(): Promise<void> {
     if (kioskData.debugVerbose) {
         htmx.logAll();
     }
+
+    registerVideoMuteApi();
 
     const MILLISECONDS_PER_SECOND = 1000;
     const TIMEOUT_GRACE_FACTOR = 3;
@@ -395,8 +397,8 @@ function addEventListeners(): void {
         const e = event as HTMXEvent;
         const path = e.detail?.pathInfo?.requestPath || "";
 
-        // Only restart polling for asset endpoints
-        if (path.startsWith("/asset/")) {
+        // Only restart polling for asset endpoints (new|offlie|previous)
+        if (/^\/asset\/(new|offline|previous)$/.test(path)) {
             startPolling();
         }
     });
@@ -537,8 +539,8 @@ async function cleanupFrames(): Promise<void> {
 function setRequestLock(e: HTMXEvent): void {
     const path = e.detail?.pathInfo?.requestPath || "";
 
-    // Do not lock for non-asset requests (e.g. GIFS, live photos)
-    if (!path.startsWith("/asset/")) {
+    // Do not lock for non-asset requests (new|offline|previous)
+    if (!/^\/asset\/(new|offline|previous)$/.test(path)) {
         return;
     }
 

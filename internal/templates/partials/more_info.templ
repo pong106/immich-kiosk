@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/damongolding/immich-kiosk/internal/common"
+	"github.com/damongolding/immich-kiosk/internal/demo"
 	"github.com/damongolding/immich-kiosk/internal/i18n"
 	"github.com/damongolding/immich-kiosk/internal/immich"
 	"github.com/damongolding/immich-kiosk/internal/kiosk"
@@ -51,7 +52,7 @@ templ RenderMoreInfo(viewData common.ViewData, secret string) {
 							)
 						</div>
 					}
-					@rating(img.ImmichAsset.ExifInfo.Rating)
+					@rating(img.ImmichAsset.ID, img.ImmichAsset.SelectedUser(), img.ImmichAsset.ExifInfo.Rating, viewData.UseOfflineMode)
 					@originalImageTimeLocation(viewData, i)
 					@cameraData(img.ImmichAsset.ExifInfo)
 					@originalAssetData(img.ImmichAsset)
@@ -59,7 +60,7 @@ templ RenderMoreInfo(viewData common.ViewData, secret string) {
 					@tags(img.ImmichAsset.Tags)
 					<div class="more-info--button-group">
 						if viewData.ShowMoreInfoImageLink {
-							<a class="more-info--image-link" href={ templ.SafeURL(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.ButtonOpenInApp)) } target="_blank">
+							<a class="more-info--image-link" href={ templ.SafeURL(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.ButtonOpenInApp, viewData.Kiosk.DemoMode)) } target="_blank">
 								{ t("immich_link_btn") }
 							</a>
 						}
@@ -79,7 +80,7 @@ templ RenderMoreInfo(viewData common.ViewData, secret string) {
 				</div>
 				if viewData.ShowMoreInfoQrCode {
 					<div class="more-info--image--qr-code">
-						<img src={ utils.CreateQrCode(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.QrCodeOpenInApp)) }/>
+						<img src={ utils.CreateQrCode(ImmichAssetUrl(viewData.ImmichURL, viewData.ImmichExternalURL, img.ImmichAsset.ID, viewData.QrCodeOpenInApp, viewData.Kiosk.DemoMode)) }/>
 					</div>
 				}
 			</div>
@@ -243,9 +244,15 @@ templ originalAssetData(img immich.Asset) {
 	</div>
 }
 
-templ rating(rating float32) {
+templ rating(assetID, selectedUser string, rating int, offlineMode bool) {
 	<div class="more-info--rating">
-		@ratingStars(rating)
+		{{
+			editable := true
+			if offlineMode {
+				editable = false
+			}
+		}}
+		@RatingStars(assetID, selectedUser, rating, editable, false)
 	</div>
 }
 
@@ -387,10 +394,11 @@ func tags(tags immich.Tags) templ.Component {
 //   - externalUrl: The external URL of the Immich instance, if different from base URL
 //   - imageID: The ID of the image to view
 //   - useAppLink: If true, uses https://my.immich.app instead of the base/external URL
+//   - demoMode: If true, forces the URL to the public demo instance
 //
 // Returns:
 //   - The complete URL string for viewing the image, or '#' if URL parsing fails
-func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink bool) string {
+func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink, demoMode bool) string {
 
 	urlToParse := externalUrl
 	if urlToParse == "" {
@@ -399,6 +407,10 @@ func ImmichAssetUrl(baseUrl, externalUrl, imageID string, useAppLink bool) strin
 
 	if useAppLink {
 		urlToParse = "https://my.immich.app"
+	}
+
+	if demoMode {
+		urlToParse = demo.DemoImmichURL
 	}
 
 	u, err := url.Parse(urlToParse)

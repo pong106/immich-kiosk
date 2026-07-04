@@ -28,6 +28,7 @@
       },
       "correctness": {
         "noUnknownProperty": {
+          "level": "on",
           "options": {
             "ignore": ["font-smoothing", "-webkit-perspective"]
           }
@@ -39,7 +40,7 @@
       "complexity": {
         "noImportantStyles": "off"
       },
-      "recommended": true
+      "preset": "recommended"
     }
   },
   "javascript": {

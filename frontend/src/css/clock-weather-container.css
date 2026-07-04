@@ -11,11 +11,11 @@
     height: auto;
     min-height: auto;
     opacity: 1;
-    transition: opacity var(--burn-in-fade) ease-in-out;
 }
 
 .burn-in-dim #clock-weather-container {
     opacity: var(--burn-in-opacity);
+    transition: opacity var(--burn-in-fade) ease-in-out;
 }
 
 .polling-paused.more-info,

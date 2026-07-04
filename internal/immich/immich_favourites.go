@@ -20,11 +20,12 @@ func (a *Asset) favouriteAssetsCount(requestID, deviceID string) (int, error) {
 	}
 
 	requestBody := SearchRandomBody{
-		Type:       string(ImageType),
-		IsFavorite: true,
-		WithPeople: false,
-		WithExif:   false,
-		Size:       a.requestConfig.Kiosk.FetchedAssetsSize,
+		Type:         string(ImageType),
+		IsFavorite:   true,
+		WithPeople:   false,
+		WithExif:     false,
+		WithArchived: a.requestConfig.ShowArchived,
+		Size:         a.requestConfig.Kiosk.FetchedAssetsSize,
 	}
 
 	// Include videos if show videos is enabled
@@ -32,13 +33,14 @@ func (a *Asset) favouriteAssetsCount(requestID, deviceID string) (int, error) {
 		requestBody.Type = ""
 	}
 
-	if a.requestConfig.ShowArchived {
-		requestBody.WithArchived = true
+	filterDate(&requestBody, a.requestConfig.FilterDate)
+
+	res, assetsErr := a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	if assetsErr != nil {
+		return 0, assetsErr
 	}
 
-	FilterDate(&requestBody, a.requestConfig.FilterDate)
-
-	return a.fetchPaginatedMetadata(u, requestBody, requestID, deviceID)
+	return len(res.Assets), nil
 }
 
 // RandomAssetFromFavourites retrieves a random favorite asset from the Immich server.
